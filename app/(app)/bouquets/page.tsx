@@ -97,9 +97,48 @@ export default function BouquetsPage() {
             }
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[680px] text-sm">
-              <thead>
+          <>
+            {/* Mobile: tappable cards (no horizontal scroll) */}
+            <ul className="divide-y divide-line lg:hidden">
+              {filtered.map((b) => {
+                const gross = b.profit?.revenueKopiyky ?? 0;
+                const net = b.profit?.netProfitKopiyky ?? 0;
+                const pct = gross > 0 ? Math.max(0, Math.min(100, (net / gross) * 100)) : 0;
+                return (
+                  <li key={b.id}>
+                    <Link
+                      href={`/bouquets/${b.id}`}
+                      className="flex items-center gap-3 px-4 py-3.5 transition-colors active:bg-surface-soft"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium text-ink">{b.title || 'Без назви'}</div>
+                        <div className="mt-1.5">
+                          <StatusBadge status={b.status} />
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <div className="nums font-semibold text-sage-ink">{formatUAH(net)}</div>
+                        <div className="mt-1.5 flex items-center justify-end gap-1.5">
+                          <div className="h-1.5 w-12 overflow-hidden rounded-full bg-surface-sunk">
+                            <div
+                              className="h-full rounded-full"
+                              style={{ width: `${pct}%`, background: 'var(--color-sage)' }}
+                            />
+                          </div>
+                          <span className="nums text-xs text-ink-faint">{Math.round(pct)}%</span>
+                        </div>
+                      </div>
+                      <IconChevronLeft width={18} height={18} className="shrink-0 rotate-180 text-ink-faint" />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {/* Desktop: full table */}
+            <div className="hidden overflow-x-auto lg:block">
+              <table className="w-full min-w-[680px] text-sm">
+                <thead>
                 <tr className="border-b border-line text-left text-xs font-semibold uppercase tracking-wide text-ink-faint">
                   <th className="px-5 py-3">Назва</th>
                   <th className="px-5 py-3">Статус</th>
@@ -156,8 +195,9 @@ export default function BouquetsPage() {
                   );
                 })}
               </tbody>
-            </table>
-          </div>
+              </table>
+            </div>
+          </>
         )}
       </Card>
     </div>

@@ -94,7 +94,7 @@ export default function BouquetPage() {
           <IconChevronLeft width={16} height={16} /> Усі букети
         </Link>
 
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-4">
           <div className="min-w-0 flex-1">
             {canEditHeader ? (
               <input
@@ -102,14 +102,14 @@ export default function BouquetPage() {
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={saveTitle}
                 onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
-                placeholder="Без назви"
+                placeholder="Назва букета…"
                 aria-label="Назва букета"
-                className="-ml-1 w-full max-w-lg rounded-lg border border-transparent bg-transparent px-1 font-display text-3xl font-semibold text-ink outline-none transition-colors placeholder:text-ink-faint hover:border-line focus:border-bloom focus:bg-surface"
+                className="w-full max-w-lg rounded-xl border border-line bg-surface/60 px-3 py-2 font-display text-2xl font-semibold text-ink outline-none transition-[border-color,background,box-shadow] placeholder:font-sans placeholder:text-base placeholder:font-normal placeholder:text-ink-faint focus:border-bloom focus:bg-surface focus:ring-4 focus:ring-bloom/12 sm:-ml-3 sm:border-transparent sm:bg-transparent sm:text-3xl sm:hover:border-line sm:hover:bg-surface/60"
               />
             ) : (
-              <h1 className="font-display text-3xl font-semibold text-ink">{detail.title || 'Без назви'}</h1>
+              <h1 className="font-display text-2xl font-semibold text-ink sm:text-3xl">{detail.title || 'Без назви'}</h1>
             )}
-            <div className="mt-2 flex items-center gap-3">
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
               <StatusBadge status={detail.status} />
               <span className="text-xs text-ink-faint">
                 Створено {new Date(detail.createdAt).toLocaleDateString('uk-UA')}
@@ -295,9 +295,90 @@ export default function BouquetPage() {
             }
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-sm">
-              <thead>
+          <>
+            {/* Mobile: line cards (no horizontal scroll) */}
+            <div className="lg:hidden">
+              <ul className="divide-y divide-line">
+                {detail.lines.map((l) => (
+                  <li key={l.id} className="px-4 py-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <span className="font-medium text-ink">{l.itemNameSnapshot}</span>
+                        <span className="ml-1 text-xs text-ink-faint">/ {UNIT_LABEL[l.unitSnapshot]}</span>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        {isDraft ? (
+                          <input
+                            type="number"
+                            step="0.001"
+                            min="0.001"
+                            defaultValue={l.quantity}
+                            aria-label="Кількість"
+                            onBlur={(e) => {
+                              const v = Number(e.target.value);
+                              if (v > 0 && v !== l.quantity)
+                                run(() =>
+                                  api(`/bouquets/${id}/lines/${l.id}`, { method: 'PATCH', body: { quantity: v } }),
+                                );
+                            }}
+                            className="nums w-16 rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-right text-sm outline-none focus:border-bloom focus:ring-4 focus:ring-bloom/12"
+                          />
+                        ) : (
+                          <span className="nums text-sm text-ink-soft">×{l.quantity}</span>
+                        )}
+                        {isDraft && (
+                          <IconButton
+                            label="Прибрати"
+                            tone="clay"
+                            onClick={() => run(() => api(`/bouquets/${id}/lines/${l.id}`, { method: 'DELETE' }))}
+                          >
+                            <IconX width={16} height={16} />
+                          </IconButton>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between gap-2 text-xs text-ink-faint">
+                      <span>
+                        Собів. <span className="nums text-ink-soft">{formatUAH(l.lineCostKopiyky)}</span>
+                      </span>
+                      <span>
+                        Виручка <span className="nums text-ink">{formatUAH(l.lineRevenueKopiyky)}</span>
+                      </span>
+                      <span>
+                        Навар <span className="nums font-medium text-sage-ink">{formatUAH(l.lineMarginKopiyky)}</span>
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              {expenses.length > 0 && (
+                <div className="border-t-2 border-line bg-surface-soft">
+                  <div className="px-4 pb-1.5 pt-3 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                    Надбавки <span className="font-normal normal-case text-ink-faint/80">· 100% навар</span>
+                  </div>
+                  <ul>
+                    {expenses.map((e) => (
+                      <li key={e.id} className="flex items-center justify-between gap-3 px-4 py-1.5 text-sm">
+                        <span className="min-w-0 truncate">
+                          <span className="text-ink">{EXPENSE_KIND_LABEL[e.kind]}</span>
+                          {e.description && <span className="ml-1.5 text-ink-faint">· {e.description}</span>}
+                        </span>
+                        <span className="nums shrink-0 text-ink-soft">{formatUAH(e.amountKopiyky)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-1 flex items-center justify-between border-t border-line px-4 py-2.5 text-sm">
+                    <span className="text-ink-soft">Разом надбавок</span>
+                    <span className="nums font-semibold text-ink">{formatUAH(expensesTotal)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Desktop: full table */}
+            <div className="hidden overflow-x-auto lg:block">
+              <table className="w-full min-w-[720px] text-sm">
+                <thead>
                 <tr className="border-b border-line text-left text-xs font-semibold uppercase tracking-wide text-ink-faint">
                   <th className="px-5 py-2.5">Позиція</th>
                   <th className="px-5 py-2.5 text-right">К-сть</th>
@@ -391,8 +472,9 @@ export default function BouquetPage() {
                   </tr>
                 </tfoot>
               )}
-            </table>
-          </div>
+              </table>
+            </div>
+          </>
         )}
 
         {isDraft && (

@@ -210,9 +210,47 @@ export default function CatalogPage() {
             }
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-sm">
-              <thead>
+          <>
+            {/* Mobile: tappable cards (no horizontal scroll) */}
+            <ul className="divide-y divide-line lg:hidden">
+              {filtered.map((it) => {
+                const margin = it.salePriceKopiyky - it.purchasePriceKopiyky;
+                const pct = it.salePriceKopiyky > 0 ? Math.round((margin / it.salePriceKopiyky) * 100) : 0;
+                return (
+                  <li key={it.id} className="flex items-center gap-3 px-4 py-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium text-ink">{it.name}</div>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <Badge tone={KIND_TONE[it.kind]}>{KIND_LABEL[it.kind]}</Badge>
+                        <span className="text-xs text-ink-faint">
+                          / {UNIT_LABEL[it.unit]}
+                          {it.category ? ` · ${it.category}` : ''}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <div className="nums font-semibold text-ink">{formatUAH(it.salePriceKopiyky)}</div>
+                      <div className="nums text-xs text-sage-ink">
+                        +{formatUAH(margin)} · {pct}%
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 gap-0.5">
+                      <IconButton label="Редагувати" tone="bloom" onClick={() => openEdit(it)}>
+                        <IconEdit width={18} height={18} />
+                      </IconButton>
+                      <IconButton label="Архівувати" tone="clay" onClick={() => archive(it)}>
+                        <IconArchive width={18} height={18} />
+                      </IconButton>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {/* Desktop: full table */}
+            <div className="hidden overflow-x-auto lg:block">
+              <table className="w-full min-w-[720px] text-sm">
+                <thead>
                 <tr className="border-b border-line text-left text-xs font-semibold uppercase tracking-wide text-ink-faint">
                   <th className="px-5 py-3">Назва</th>
                   <th className="px-5 py-3">Тип</th>
@@ -258,8 +296,9 @@ export default function CatalogPage() {
                   );
                 })}
               </tbody>
-            </table>
-          </div>
+              </table>
+            </div>
+          </>
         )}
       </Card>
 

@@ -150,8 +150,35 @@ export default function ExpensesPage() {
             }
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-sm">
+          <>
+            {/* Mobile: tappable cards (no horizontal scroll) */}
+            <div className="lg:hidden">
+              <ul className="divide-y divide-line">
+                {expenses.map((e) => (
+                  <li key={e.id} className="flex items-center gap-3 px-4 py-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-ink">{EXPENSE_KIND_LABEL[e.kind]}</div>
+                      <div className="mt-0.5 truncate text-xs text-ink-faint">
+                        {e.incurredOn}
+                        {e.description ? ` · ${e.description}` : ''}
+                      </div>
+                    </div>
+                    <div className="nums shrink-0 font-semibold text-ink">{formatUAH(e.amountKopiyky)}</div>
+                    <IconButton label="Видалити" tone="clay" onClick={() => remove(e)}>
+                      <IconTrash width={18} height={18} />
+                    </IconButton>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex items-center justify-between border-t border-line bg-surface-soft px-4 py-3 text-sm">
+                <span className="font-semibold uppercase tracking-wide text-ink-faint">Разом</span>
+                <span className="nums font-semibold text-ink">{formatUAH(total)}</span>
+              </div>
+            </div>
+
+            {/* Desktop: full table */}
+            <div className="hidden overflow-x-auto lg:block">
+              <table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b border-line text-left text-xs font-semibold uppercase tracking-wide text-ink-faint">
                   <th className="px-5 py-3">Дата</th>
@@ -190,8 +217,9 @@ export default function ExpensesPage() {
                   <td></td>
                 </tr>
               </tfoot>
-            </table>
-          </div>
+              </table>
+            </div>
+          </>
         )}
       </Card>
 
