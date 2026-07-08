@@ -1,77 +1,43 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { formatBps, formatUAH, kopiykyToUah, uahToKopiyky } from '@/lib/money';
-import {
-  EXPENSE_KINDS,
-  type BouquetDetail,
-  type CatalogItem,
-  type Expense,
-  type ExpenseKind,
-  type Unit,
-} from '@/lib/types';
+import { formatBps, formatUAH } from '@/lib/money';
 import { EXPENSE_KIND_LABEL, UNIT_LABEL } from '@/lib/labels';
 import {
-  Alert,
   Button,
   Card,
   CardHeader,
   EmptyState,
-  Field,
   IconButton,
-  Input,
-  MoneyInput,
   Spinner,
   StatusBadge,
 } from '@/components/ui';
-import { Select, type SelectOption } from '@/components/select';
-import { DatePicker } from '@/components/datepicker';
-import { Modal, useConfirm } from '@/components/modal';
-import { useToast } from '@/components/toast';
+import { useConfirm } from '@/components/modal';
 import {
   IconBouquet,
-  IconCheck,
   IconChevronLeft,
   IconCopy,
-  IconMinus,
   IconPlus,
-  IconSearch,
   IconTrash,
   IconWallet,
   IconX,
 } from '@/components/icons';
-
-function todayKyiv() {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(new Date());
-}
-
-function pluralUk(n: number, one: string, few: string, many: string) {
-  const d = Math.abs(n) % 100;
-  const d1 = d % 10;
-  if (d > 10 && d < 20) return many;
-  if (d1 === 1) return one;
-  if (d1 >= 2 && d1 <= 4) return few;
-  return many;
-}
-
-const EXPENSE_SELECT: SelectOption<ExpenseKind>[] = EXPENSE_KINDS.map((k) => ({
-  value: k,
-  label: EXPENSE_KIND_LABEL[k],
-}));
+import { AddLinesModal } from './_components/add-lines-modal';
+import { CustomLineModal } from './_components/custom-line-modal';
+import { ExpensesModal } from './_components/expenses-modal';
+import { SellModal } from './_components/sell-modal';
+import { pluralUk } from '@/lib/plural';
+import { useBouquetDetail } from '@/lib/hooks/use-bouquet-detail';
 
 export default function BouquetPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const toast = useToast();
   const confirm = useConfirm();
 
-  const [detail, setDetail] = useState<BouquetDetail | null>(null);
-  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { detail, catalog, expenses, loading, run } = useBouquetDetail(id);
 
   const [sellOpen, setSellOpen] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
@@ -79,39 +45,15 @@ export default function BouquetPage() {
   const [expensesOpen, setExpensesOpen] = useState(false);
   const [title, setTitle] = useState('');
 
-  const load = useCallback(async () => {
-    const [d, exp] = await Promise.all([
-      api<BouquetDetail>(`/bouquets/${id}`),
-      api<Expense[]>(`/expenses?bouquetId=${id}`),
-    ]);
-    setDetail(d);
-    setTitle(d.title ?? '');
-    setExpenses(exp);
-  }, [id]);
-
+  // Keep the editable title in sync with the loaded bouquet.
   useEffect(() => {
-    Promise.all([load(), api<CatalogItem[]>('/catalog').then(setCatalog)]).finally(() => setLoading(false));
-  }, [load]);
-
-  const run = useCallback(
-    async (fn: () => Promise<unknown>, okMsg?: string) => {
-      try {
-        await fn();
-        await load();
-        if (okMsg) toast.success(okMsg);
-      } catch (err) {
-        toast.error('Не вдалося', err instanceof Error ? err.message : 'Спробуйте ще раз');
-      }
-    },
-    [load, toast],
-  );
+    if (detail) setTitle(detail.title ?? '');
+  }, [detail]);
 
   if (loading || !detail) return <Spinner label="Відкриваємо букет…" />;
 
   const isDraft = detail.status === 'DRAFT';
   const isConfirmed = detail.status === 'CONFIRMED';
-  const isSold = detail.status === 'SOLD';
-  const cancelled = detail.status === 'CANCELLED';
   const canEditHeader = isDraft || isConfirmed;
   const p = detail.profit;
   const expensesTotal = expenses.reduce((s, e) => s + e.amountKopiyky, 0);
@@ -283,7 +225,7 @@ export default function BouquetPage() {
                 onClick={() => setExpensesOpen(true)}
                 className="cursor-pointer transition-colors hover:text-white"
               >
-                Інші витрати
+                Надбавка
               </button>
             </div>
           </div>
@@ -311,22 +253,21 @@ export default function BouquetPage() {
               <div className="nums mt-1 text-lg font-semibold text-ink">{formatUAH(cost)}</div>
             </div>
             <div className="bg-surface p-5">
-              <div className="text-xs font-medium text-ink-soft">Витрати по букету</div>
-              <div className="nums mt-1 text-lg font-semibold text-ink">{formatUAH(bouqExp)}</div>
+              <div className="text-xs font-medium text-ink-soft">Надбавка (пакування)</div>
+              <div className="nums mt-1 text-lg font-semibold text-sage-ink">{formatUAH(bouqExp)}</div>
+              <div className="mt-0.5 text-[11px] text-ink-faint">у наварі · 100%</div>
             </div>
           </div>
         </div>
-        {/* composition bar */}
+        {/* composition bar — packaging add-on is inside «навар» now */}
         {revenue > 0 && (
           <div className="border-t border-line px-5 py-4">
             <div className="flex h-3 overflow-hidden rounded-full bg-surface-sunk">
               <Seg value={cost} total={revenue} color="var(--color-clay)" />
-              <Seg value={bouqExp} total={revenue} color="var(--color-gold)" />
               <Seg value={Math.max(0, net)} total={revenue} color="var(--color-sage)" />
             </div>
             <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-ink-soft">
               <Legend color="var(--color-clay)" label="Собівартість" value={formatUAH(cost)} />
-              <Legend color="var(--color-gold)" label="Витрати" value={formatUAH(bouqExp)} />
               <Legend color="var(--color-sage)" label="Навар (чистий)" value={formatUAH(net)} />
             </div>
           </div>
@@ -422,8 +363,8 @@ export default function BouquetPage() {
                       colSpan={8}
                       className="border-t-2 border-line bg-surface-soft px-5 pb-1.5 pt-3 text-xs font-semibold uppercase tracking-wide text-ink-faint"
                     >
-                      Інші витрати{' '}
-                      <span className="font-normal normal-case text-ink-faint/80">· окрім квітів</span>
+                      Надбавки{' '}
+                      <span className="font-normal normal-case text-ink-faint/80">· пакування тощо · 100% навар</span>
                     </td>
                   </tr>
                   {expenses.map((e) => (
@@ -439,7 +380,7 @@ export default function BouquetPage() {
                   ))}
                   <tr className="bg-surface-soft">
                     <td colSpan={6} className="border-t border-line px-5 py-2.5 text-sm text-ink-soft">
-                      Разом витрат
+                      Разом надбавок
                     </td>
                     <td
                       colSpan={2}
@@ -463,7 +404,7 @@ export default function BouquetPage() {
               Своя позиція
             </Button>
             <Button variant="ghost" onClick={() => setExpensesOpen(true)}>
-              <IconWallet width={17} height={17} /> Інші витрати
+              <IconWallet width={17} height={17} /> Надбавка
             </Button>
           </div>
         )}
@@ -471,7 +412,7 @@ export default function BouquetPage() {
         {isConfirmed && (
           <div className="flex border-t border-line bg-surface-soft px-5 py-4">
             <Button variant="secondary" onClick={() => setExpensesOpen(true)}>
-              <IconWallet width={17} height={17} /> Інші витрати
+              <IconWallet width={17} height={17} /> Надбавка
             </Button>
           </div>
         )}
@@ -543,450 +484,5 @@ function Legend({ color, label, value }: { color: string; label: string; value: 
       {label}
       <span className="nums font-medium text-ink">{value}</span>
     </span>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * «Інші витрати» — add/list/delete bouquet expenses other than flowers.
- * The list also renders inline at the bottom of the «Склад букета» table.
- * ------------------------------------------------------------------ */
-function ExpensesModal({
-  open,
-  onClose,
-  bouquetId,
-  expenses,
-  run,
-  disabled,
-}: {
-  open: boolean;
-  onClose: () => void;
-  bouquetId: string;
-  expenses: Expense[];
-  run: (fn: () => Promise<unknown>, ok?: string) => Promise<void>;
-  disabled: boolean;
-}) {
-  const [kind, setKind] = useState<ExpenseKind>('PACKAGING');
-  const [amount, setAmount] = useState('');
-  const [desc, setDesc] = useState('');
-
-  const total = expenses.reduce((s, e) => s + e.amountKopiyky, 0);
-
-  async function add() {
-    if (!amount) return;
-    await run(async () => {
-      await api('/expenses', {
-        method: 'POST',
-        body: {
-          scope: 'BOUQUET',
-          bouquetId,
-          kind,
-          amountKopiyky: uahToKopiyky(amount),
-          incurredOn: todayKyiv(),
-          description: desc || undefined,
-        },
-      });
-      setAmount('');
-      setDesc('');
-    }, 'Витрату додано');
-  }
-
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Інші витрати"
-      description="Витрати по букету, окрім квітів — пакування, доставка, робота…"
-      size="sm"
-      footer={
-        <Button variant="ghost" onClick={onClose}>
-          Готово
-        </Button>
-      }
-    >
-      <div className="space-y-4">
-        {expenses.length > 0 ? (
-          <div>
-            <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line">
-              {expenses.map((e) => (
-                <li key={e.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
-                  <span className="min-w-0">
-                    <span className="text-ink">{EXPENSE_KIND_LABEL[e.kind]}</span>
-                    {e.description && <span className="ml-1.5 text-ink-faint">· {e.description}</span>}
-                  </span>
-                  <span className="flex shrink-0 items-center gap-2">
-                    <span className="nums font-medium text-ink">{formatUAH(e.amountKopiyky)}</span>
-                    {!disabled && (
-                      <IconButton
-                        label="Видалити"
-                        tone="clay"
-                        onClick={() => run(() => api(`/expenses/${e.id}`, { method: 'DELETE' }))}
-                      >
-                        <IconX width={15} height={15} />
-                      </IconButton>
-                    )}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-2 flex items-center justify-between px-1 text-sm">
-              <span className="text-ink-soft">Разом</span>
-              <span className="nums font-semibold text-ink">{formatUAH(total)}</span>
-            </div>
-          </div>
-        ) : (
-          <p className="text-sm text-ink-faint">Поки немає витрат по цьому букету.</p>
-        )}
-
-        {!disabled && (
-          <div className="rounded-xl border border-line bg-surface-soft p-3">
-            <div className="flex flex-wrap items-end gap-2.5">
-              <Field label="Тип" className="w-32">
-                <Select value={kind} onChange={setKind} options={EXPENSE_SELECT} ariaLabel="Тип витрати" />
-              </Field>
-              <Field label="Сума" className="w-24">
-                <MoneyInput value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
-              </Field>
-              <Field label="Опис" className="min-w-[110px] flex-1">
-                <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="стрічка…" />
-              </Field>
-              <Button variant="secondary" onClick={add} disabled={!amount}>
-                <IconPlus width={17} height={17} />
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-    </Modal>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-function SellModal({
-  open,
-  onClose,
-  revenue,
-  onSell,
-}: {
-  open: boolean;
-  onClose: () => void;
-  revenue: number;
-  onSell: (soldOn: string, amountReceivedKopiyky?: number) => void;
-}) {
-  const [soldOn, setSoldOn] = useState(todayKyiv());
-  const [received, setReceived] = useState('');
-
-  useEffect(() => {
-    if (open) {
-      setSoldOn(todayKyiv());
-      setReceived(String(kopiykyToUah(revenue)));
-    }
-  }, [open, revenue]);
-
-  const receivedK = uahToKopiyky(received);
-  const owed = revenue - receivedK;
-  const fullyPaid = owed <= 0;
-
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Продаж букета"
-      size="sm"
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
-            Скасувати
-          </Button>
-          <Button onClick={() => onSell(soldOn, received !== '' ? receivedK : undefined)}>
-            <IconWallet width={17} height={17} /> Продати
-          </Button>
-        </>
-      }
-    >
-      <div className="space-y-4">
-        <div className="flex items-center justify-between rounded-xl bg-surface-sunk px-4 py-3">
-          <span className="text-sm text-ink-soft">Сума букета</span>
-          <span className="nums text-xl font-semibold text-bloom-ink">{formatUAH(revenue)}</span>
-        </div>
-
-        <Field label="Дата продажу">
-          <DatePicker value={soldOn} onChange={setSoldOn} />
-        </Field>
-
-        <Field label="Отримано готівкою">
-          <MoneyInput value={received} onChange={(e) => setReceived(e.target.value)} placeholder="0" />
-          <div className="mt-2 flex items-center justify-between gap-2">
-            {fullyPaid ? (
-              <span className="flex items-center gap-1.5 text-xs font-medium text-sage-ink">
-                <IconCheck width={14} height={14} /> Оплачено повністю
-              </span>
-            ) : (
-              <span className="text-xs font-medium text-clay-ink">Борг: {formatUAH(owed)}</span>
-            )}
-            {!fullyPaid && (
-              <button
-                type="button"
-                onClick={() => setReceived(String(kopiykyToUah(revenue)))}
-                className="cursor-pointer text-xs font-medium text-bloom-ink hover:underline"
-              >
-                Оплачено повністю
-              </button>
-            )}
-          </div>
-        </Field>
-
-        <Alert tone="gold">Після продажу склад букета не можна змінити. Щоб переробити — «Клонувати» в нову чернетку.</Alert>
-      </div>
-    </Modal>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-function CustomLineModal({
-  open,
-  onClose,
-  onAdd,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onAdd: (body: {
-    itemName: string;
-    unit: Unit;
-    purchasePriceKopiyky: number;
-    salePriceKopiyky: number;
-    quantity: number;
-  }) => void;
-}) {
-  const [name, setName] = useState('');
-  const [purchase, setPurchase] = useState('');
-  const [sale, setSale] = useState('');
-  const [quantity, setQuantity] = useState('1');
-
-  useEffect(() => {
-    if (open) {
-      setName('');
-      setPurchase('');
-      setSale('');
-      setQuantity('1');
-    }
-  }, [open]);
-
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Своя позиція"
-      description="Разова «ринкова» квітка, якої немає в каталозі."
-      size="sm"
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
-            Скасувати
-          </Button>
-          <Button
-            disabled={!name || !quantity}
-            onClick={() =>
-              onAdd({
-                itemName: name,
-                unit: 'PIECE',
-                purchasePriceKopiyky: uahToKopiyky(purchase),
-                salePriceKopiyky: uahToKopiyky(sale),
-                quantity: Number(quantity),
-              })
-            }
-          >
-            <IconPlus width={17} height={17} /> Додати
-          </Button>
-        </>
-      }
-    >
-      <div className="space-y-4">
-        <Field label="Назва">
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Півонія (ринок)" autoFocus />
-        </Field>
-        <Field label="К-сть (шт)">
-          <Input
-            type="number"
-            step="0.001"
-            min="0.001"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            className="nums text-right"
-          />
-        </Field>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Закупівельна">
-            <MoneyInput value={purchase} onChange={(e) => setPurchase(e.target.value)} placeholder="0" />
-          </Field>
-          <Field label="Продажна">
-            <MoneyInput value={sale} onChange={(e) => setSale(e.target.value)} placeholder="0" />
-          </Field>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Catalog picker — touch-friendly batch add with quantity steppers
- * ------------------------------------------------------------------ */
-function AddLinesModal({
-  open,
-  onClose,
-  catalog,
-  onConfirm,
-  onCustom,
-}: {
-  open: boolean;
-  onClose: () => void;
-  catalog: CatalogItem[];
-  onConfirm: (selections: { catalogItemId: string; quantity: number }[]) => Promise<void>;
-  onCustom: () => void;
-}) {
-  const [qty, setQty] = useState<Record<string, number>>({});
-  const [query, setQuery] = useState('');
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      setQty({});
-      setQuery('');
-    }
-  }, [open]);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return catalog.filter(
-      (c) => !q || c.name.toLowerCase().includes(q) || c.category?.toLowerCase().includes(q),
-    );
-  }, [catalog, query]);
-
-  const selected = catalog.filter((c) => (qty[c.id] ?? 0) > 0);
-  const count = selected.length;
-  const previewTotal = selected.reduce((s, c) => s + (qty[c.id] ?? 0) * c.salePriceKopiyky, 0);
-
-  const setN = (id: string, n: number) => setQty((prev) => ({ ...prev, [id]: Math.max(0, n) }));
-
-  async function confirm() {
-    if (count === 0) return;
-    setSaving(true);
-    try {
-      await onConfirm(selected.map((c) => ({ catalogItemId: c.id, quantity: qty[c.id] })));
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Додати квіти"
-      description="Наберіть кількість по кожній позиції"
-      size="lg"
-      footer={
-        <div className="flex w-full items-center justify-between gap-3">
-          <Button variant="ghost" onClick={onCustom}>
-            Своя позиція
-          </Button>
-          <div className="flex items-center gap-3">
-            {count > 0 && (
-              <span className="nums hidden text-sm text-ink-soft sm:inline">{formatUAH(previewTotal)}</span>
-            )}
-            <Button onClick={confirm} disabled={count === 0 || saving}>
-              <IconPlus width={18} height={18} />
-              {saving ? 'Додаємо…' : count > 0 ? `Додати ${count}` : 'Додати'}
-            </Button>
-          </div>
-        </div>
-      }
-    >
-      <div className="-m-5 flex h-full min-h-0 flex-col">
-        <div className="shrink-0 border-b border-line px-5 py-3">
-          <div className="relative">
-            <IconSearch
-              width={18}
-              height={18}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint"
-            />
-            <Input
-              placeholder="Пошук квітки…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="pl-11"
-            />
-          </div>
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-3">
-          {catalog.length === 0 ? (
-            <div className="py-10 text-center text-sm text-ink-faint">
-              Каталог порожній — спершу додайте позиції в розділі «Каталог».
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="py-10 text-center text-sm text-ink-faint">Нічого не знайдено</div>
-          ) : (
-            <div className="space-y-1.5">
-              {filtered.map((c) => {
-                const n = qty[c.id] ?? 0;
-                const active = n > 0;
-                return (
-                  <div
-                    key={c.id}
-                    className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors ${
-                      active ? 'border-bloom/30 bg-bloom-tint' : 'border-line bg-surface'
-                    }`}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-medium text-ink">{c.name}</div>
-                      <div className="nums text-xs text-ink-faint">
-                        {formatUAH(c.salePriceKopiyky)}/{UNIT_LABEL[c.unit]}
-                      </div>
-                    </div>
-                    <QtyStepper n={n} onInc={() => setN(c.id, n + 1)} onDec={() => setN(c.id, n - 1)} />
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
-function QtyStepper({ n, onInc, onDec }: { n: number; onInc: () => void; onDec: () => void }) {
-  if (n === 0) {
-    return (
-      <button
-        type="button"
-        onClick={onInc}
-        aria-label="Додати"
-        className="grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-full border border-line-strong bg-surface text-ink-soft transition-colors hover:border-bloom hover:text-bloom"
-      >
-        <IconPlus width={18} height={18} />
-      </button>
-    );
-  }
-  return (
-    <div className="flex shrink-0 items-center gap-0.5 rounded-full border border-bloom/30 bg-surface p-1">
-      <button
-        type="button"
-        onClick={onDec}
-        aria-label="Менше"
-        className="grid h-9 w-9 cursor-pointer place-items-center rounded-full text-bloom transition-colors hover:bg-bloom-tint"
-      >
-        <IconMinus width={16} height={16} />
-      </button>
-      <span className="nums w-7 text-center text-sm font-semibold text-ink">{n}</span>
-      <button
-        type="button"
-        onClick={onInc}
-        aria-label="Більше"
-        className="grid h-9 w-9 cursor-pointer place-items-center rounded-full text-bloom transition-colors hover:bg-bloom-tint"
-      >
-        <IconPlus width={16} height={16} />
-      </button>
-    </div>
   );
 }

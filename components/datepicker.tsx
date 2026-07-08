@@ -1,29 +1,48 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { IconCalendar, IconChevronDown, IconChevronLeft } from '@/components/icons';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import {
+  IconCalendar,
+  IconChevronDown,
+  IconChevronLeft,
+} from "@/components/icons";
 
-const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
+const WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
 const MONTHS = [
-  'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
-  'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень',
+  "Січень",
+  "Лютий",
+  "Березень",
+  "Квітень",
+  "Травень",
+  "Червень",
+  "Липень",
+  "Серпень",
+  "Вересень",
+  "Жовтень",
+  "Листопад",
+  "Грудень",
 ];
 
-const pad = (n: number) => String(n).padStart(2, '0');
+const pad = (n: number) => String(n).padStart(2, "0");
 const toStr = (y: number, m: number, d: number) => `${y}-${pad(m)}-${pad(d)}`; // m: 1-12
 const parse = (s: string) => {
-  const [y, m, d] = s.split('-').map(Number);
+  const [y, m, d] = s.split("-").map(Number);
   return { y, m, d };
 };
 const fmtDMY = (s: string) => {
-  if (!s) return '';
+  if (!s) return "";
   const { y, m, d } = parse(s);
   return `${pad(d)}.${pad(m)}.${y}`;
 };
-const daysInMonth = (y: number, m: number) => new Date(Date.UTC(y, m, 0)).getUTCDate();
-const firstWeekdayMon = (y: number, m: number) => (new Date(Date.UTC(y, m - 1, 1)).getUTCDay() + 6) % 7;
-const todayKyiv = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(new Date());
+const daysInMonth = (y: number, m: number) =>
+  new Date(Date.UTC(y, m, 0)).getUTCDate();
+const firstWeekdayMon = (y: number, m: number) =>
+  (new Date(Date.UTC(y, m - 1, 1)).getUTCDay() + 6) % 7;
+const todayKyiv = () =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Kyiv" }).format(
+    new Date(),
+  );
 function addMonth(y: number, m: number, delta: number) {
   const idx = y * 12 + (m - 1) + delta;
   return { y: Math.floor(idx / 12), m: (idx % 12) + 1 };
@@ -33,7 +52,11 @@ type Preset = { label: string; range: () => { from: string; to: string } };
 type Pos = { left: number; top: number; width: number; openUp: boolean };
 
 /* Popover anchored to a trigger, portaled above modals. Shared by both pickers. */
-function useAnchoredPopover(open: boolean, setOpen: (v: boolean) => void, width: number) {
+function useAnchoredPopover(
+  open: boolean,
+  setOpen: (v: boolean) => void,
+  width: number,
+) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<Pos | null>(null);
@@ -60,11 +83,11 @@ function useAnchoredPopover(open: boolean, setOpen: (v: boolean) => void, width:
   useEffect(() => {
     if (!open) return;
     const onMove = () => reposition();
-    window.addEventListener('scroll', onMove, true);
-    window.addEventListener('resize', onMove);
+    window.addEventListener("scroll", onMove, true);
+    window.addEventListener("resize", onMove);
     return () => {
-      window.removeEventListener('scroll', onMove, true);
-      window.removeEventListener('resize', onMove);
+      window.removeEventListener("scroll", onMove, true);
+      window.removeEventListener("resize", onMove);
     };
   }, [open, reposition]);
 
@@ -72,15 +95,16 @@ function useAnchoredPopover(open: boolean, setOpen: (v: boolean) => void, width:
     if (!open) return;
     const onDown = (e: MouseEvent) => {
       const t = e.target as Node;
-      if (triggerRef.current?.contains(t) || popRef.current?.contains(t)) return;
+      if (triggerRef.current?.contains(t) || popRef.current?.contains(t))
+        return;
       setOpen(false);
     };
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
-    document.addEventListener('mousedown', onDown);
-    document.addEventListener('keydown', onKey);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
     return () => {
-      document.removeEventListener('mousedown', onDown);
-      document.removeEventListener('keydown', onKey);
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
     };
   }, [open, setOpen]);
 
@@ -88,11 +112,11 @@ function useAnchoredPopover(open: boolean, setOpen: (v: boolean) => void, width:
 }
 
 const POP_STYLE = (pos: Pos): React.CSSProperties => ({
-  position: 'fixed',
+  position: "fixed",
   left: pos.left,
   top: pos.top,
   width: pos.width,
-  transform: pos.openUp ? 'translateY(-100%)' : undefined,
+  transform: pos.openUp ? "translateY(-100%)" : undefined,
   zIndex: 1200, // above modals (1100)
 });
 
@@ -130,7 +154,10 @@ function Weekdays() {
   return (
     <div className="grid grid-cols-7">
       {WEEKDAYS.map((w) => (
-        <div key={w} className="grid h-8 place-items-center text-[11px] font-medium uppercase text-ink-faint">
+        <div
+          key={w}
+          className="grid h-8 place-items-center text-[11px] font-medium uppercase text-ink-faint"
+        >
           {w}
         </div>
       ))}
@@ -156,7 +183,7 @@ export function DateRangePicker({
   to,
   onChange,
   presets = [],
-  className = '',
+  className = "",
 }: {
   from: string;
   to: string;
@@ -172,7 +199,7 @@ export function DateRangePicker({
   });
   const [start, setStart] = useState(from);
   const [end, setEnd] = useState(to);
-  const [phase, setPhase] = useState<'start' | 'end'>('start');
+  const [phase, setPhase] = useState<"start" | "end">("start");
   const [hover, setHover] = useState<string | null>(null);
   const today = todayKyiv();
 
@@ -183,7 +210,7 @@ export function DateRangePicker({
     if (!open) return;
     setStart(from);
     setEnd(to);
-    setPhase('start');
+    setPhase("start");
     setHover(null);
     const { y, m } = parse(to || from || todayKyiv());
     setView({ y, m });
@@ -192,16 +219,16 @@ export function DateRangePicker({
   const cells = useMonthCells(view);
 
   function pick(dayStr: string) {
-    if (phase === 'start') {
+    if (phase === "start") {
       setStart(dayStr);
       setEnd(dayStr);
-      setPhase('end');
+      setPhase("end");
       setHover(null);
     } else {
       let s = start;
       let e = dayStr;
       if (e < s) [s, e] = [e, s];
-      setPhase('start');
+      setPhase("start");
       onChange(s, e);
       setOpen(false);
     }
@@ -218,7 +245,7 @@ export function DateRangePicker({
   function reset() {
     setStart(from);
     setEnd(to);
-    setPhase('start');
+    setPhase("start");
     setHover(null);
     const { y, m } = parse(to || from || todayKyiv());
     setView({ y, m });
@@ -233,9 +260,11 @@ export function DateRangePicker({
     [presets, from, to],
   );
 
-  const previewEnd = phase === 'end' ? hover ?? end : end;
-  const lo = start && previewEnd ? (start <= previewEnd ? start : previewEnd) : start;
-  const hi = start && previewEnd ? (start <= previewEnd ? previewEnd : start) : end;
+  const previewEnd = phase === "end" ? (hover ?? end) : end;
+  const lo =
+    start && previewEnd ? (start <= previewEnd ? start : previewEnd) : start;
+  const hi =
+    start && previewEnd ? (start <= previewEnd ? previewEnd : start) : end;
 
   return (
     <div className={className}>
@@ -246,17 +275,23 @@ export function DateRangePicker({
         aria-haspopup="dialog"
         aria-expanded={open}
         className={`flex h-10 w-full items-center gap-2 rounded-xl border bg-surface px-3.5 text-left text-sm outline-none transition-[border-color,box-shadow] duration-150 ${
-          open ? 'border-bloom ring-4 ring-bloom/12' : 'border-line-strong hover:border-ink-faint/60'
+          open
+            ? "border-bloom ring-4 ring-bloom/12"
+            : "border-line-strong hover:border-ink-faint/60"
         }`}
       >
-        <IconCalendar width={17} height={17} className="shrink-0 text-ink-soft" />
+        <IconCalendar
+          width={17}
+          height={17}
+          className="shrink-0 text-ink-soft"
+        />
         <span className="nums flex-1 truncate text-ink">
           {fmtDMY(from)} <span className="text-ink-faint">—</span> {fmtDMY(to)}
         </span>
         <IconChevronDown
           width={16}
           height={16}
-          className={`shrink-0 text-ink-faint transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={`shrink-0 text-ink-faint transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -282,7 +317,9 @@ export function DateRangePicker({
                       setOpen(false);
                     }}
                     className={`cursor-pointer rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
-                      i === activePreset ? 'bg-bloom-tint text-bloom-ink' : 'text-ink-soft hover:bg-ink/5 hover:text-ink'
+                      i === activePreset
+                        ? "bg-bloom-tint text-bloom-ink"
+                        : "text-ink-soft hover:bg-ink/5 hover:text-ink"
                     }`}
                   >
                     {p.label}
@@ -300,15 +337,19 @@ export function DateRangePicker({
                   const isEndpoint = day === lo || day === hi;
                   const inRange = !!lo && !!hi && day > lo && day < hi;
                   const isToday = day === today;
-                  let cls = 'text-ink hover:bg-surface-sunk';
-                  if (isEndpoint) cls = 'bg-bloom text-white font-semibold hover:bg-bloom-strong';
-                  else if (inRange) cls = 'bg-bloom-tint text-bloom-ink';
-                  else if (isToday) cls = 'font-semibold text-bloom-ink ring-1 ring-inset ring-bloom/30';
+                  let cls = "text-ink hover:bg-surface-sunk";
+                  if (isEndpoint)
+                    cls =
+                      "bg-bloom text-white font-semibold hover:bg-bloom-strong";
+                  else if (inRange) cls = "bg-bloom-tint text-bloom-ink";
+                  else if (isToday)
+                    cls =
+                      "font-semibold text-bloom-ink ring-1 ring-inset ring-bloom/30";
                   return (
                     <button
                       key={day}
                       onClick={() => pick(day)}
-                      onMouseEnter={() => phase === 'end' && setHover(day)}
+                      onMouseEnter={() => phase === "end" && setHover(day)}
                       className={`nums h-9 cursor-pointer rounded-lg text-sm transition-colors ${cls}`}
                     >
                       {parse(day).d}
@@ -320,7 +361,8 @@ export function DateRangePicker({
 
             <div className="border-t border-line bg-surface-soft px-3.5 py-2.5">
               <div className="nums mb-2 flex items-center gap-1 text-xs text-ink-soft">
-                {fmtDMY(lo)} <span className="text-ink-faint">—</span> {fmtDMY(hi)}
+                {fmtDMY(lo)} <span className="text-ink-faint">—</span>{" "}
+                {fmtDMY(hi)}
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -350,8 +392,8 @@ export function DateRangePicker({
 export function DatePicker({
   value,
   onChange,
-  placeholder = 'Оберіть дату',
-  className = '',
+  placeholder = "Оберіть дату",
+  className = "",
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -385,17 +427,25 @@ export function DatePicker({
         aria-haspopup="dialog"
         aria-expanded={open}
         className={`flex h-10 w-full items-center gap-2 rounded-xl border bg-surface px-3.5 text-left text-sm outline-none transition-[border-color,box-shadow] duration-150 ${
-          open ? 'border-bloom ring-4 ring-bloom/12' : 'border-line-strong hover:border-ink-faint/60'
+          open
+            ? "border-bloom ring-4 ring-bloom/12"
+            : "border-line-strong hover:border-ink-faint/60"
         }`}
       >
-        <IconCalendar width={17} height={17} className="shrink-0 text-ink-soft" />
-        <span className={`nums flex-1 truncate ${value ? 'text-ink' : 'text-ink-faint'}`}>
+        <IconCalendar
+          width={17}
+          height={17}
+          className="shrink-0 text-ink-soft"
+        />
+        <span
+          className={`nums flex-1 truncate ${value ? "text-ink" : "text-ink-faint"}`}
+        >
           {value ? fmtDMY(value) : placeholder}
         </span>
         <IconChevronDown
           width={16}
           height={16}
-          className={`shrink-0 text-ink-faint transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={`shrink-0 text-ink-faint transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -417,9 +467,13 @@ export function DatePicker({
                 if (!day) return <div key={`e${i}`} />;
                 const selected = day === value;
                 const isToday = day === today;
-                let cls = 'text-ink hover:bg-surface-sunk';
-                if (selected) cls = 'bg-bloom text-white font-semibold hover:bg-bloom-strong';
-                else if (isToday) cls = 'font-semibold text-bloom-ink ring-1 ring-inset ring-bloom/30';
+                let cls = "text-ink hover:bg-surface-sunk";
+                if (selected)
+                  cls =
+                    "bg-bloom text-white font-semibold hover:bg-bloom-strong";
+                else if (isToday)
+                  cls =
+                    "font-semibold text-bloom-ink ring-1 ring-inset ring-bloom/30";
                 return (
                   <button
                     key={day}

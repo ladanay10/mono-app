@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { api } from '@/lib/api';
 import { formatUAH, kopiykyToUah, uahToKopiyky } from '@/lib/money';
+import { useCatalog } from '@/lib/hooks/use-catalog';
 import { CATALOG_KINDS, type CatalogItem, type CatalogKind, type Unit } from '@/lib/types';
 import { KIND_LABEL, UNIT_LABEL, type Tone } from '@/lib/labels';
 import {
@@ -65,8 +66,7 @@ const emptyForm = {
 type FilterKind = CatalogKind | 'ALL';
 
 export default function CatalogPage() {
-  const [items, setItems] = useState<CatalogItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { items, loading, reload } = useCatalog();
   const [query, setQuery] = useState('');
   const [filterKind, setFilterKind] = useState<FilterKind>('ALL');
 
@@ -78,14 +78,6 @@ export default function CatalogPage() {
 
   const toast = useToast();
   const confirm = useConfirm();
-
-  async function load() {
-    setItems(await api<CatalogItem[]>('/catalog'));
-    setLoading(false);
-  }
-  useEffect(() => {
-    load();
-  }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -136,7 +128,7 @@ export default function CatalogPage() {
       else await api('/catalog', { method: 'POST', body });
       setOpen(false);
       toast.success(editingId ? 'Позицію оновлено' : 'Позицію додано', form.name);
-      await load();
+      await reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Помилка збереження');
     } finally {
@@ -154,7 +146,7 @@ export default function CatalogPage() {
     if (!ok) return;
     await api(`/catalog/${it.id}`, { method: 'DELETE' });
     toast.success('Позицію заархівовано');
-    await load();
+    await reload();
   }
 
   const purchase = uahToKopiyky(form.purchaseUah);

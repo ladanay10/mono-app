@@ -1,19 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { api } from '@/lib/api';
+import { useMemo, useState } from 'react';
 import { formatUAH, formatUahCompact } from '@/lib/money';
-import type { MonthlyRow, Outstanding, ReportSummary, TopFlower } from '@/lib/types';
 import { Card, CardHeader, EmptyState, PageHeader, Stat, Spinner } from '@/components/ui';
 import { DateRangePicker } from '@/components/datepicker';
 import { BarList, ColumnChart, Donut, chartPalette, type Column } from '@/components/charts';
 import { IconAlert, IconBouquet, IconCoins, IconTrendUp, IconWallet } from '@/components/icons';
+import { todayKyiv } from '@/lib/date';
+import { useDashboardData } from '@/lib/hooks/use-dashboard-data';
 
 const MONTHS_SHORT = ['січ', 'лют', 'бер', 'кві', 'тра', 'чер', 'лип', 'сер', 'вер', 'жов', 'лис', 'гру'];
-
-function todayKyiv() {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(new Date());
-}
 
 type RangeKey = 'this-month' | 'last-month' | 'year' | 'all';
 
@@ -48,29 +44,7 @@ export default function DashboardPage() {
   const initial = presetRange('this-month');
   const [from, setFrom] = useState(initial.from);
   const [to, setTo] = useState(initial.to);
-  const [summary, setSummary] = useState<ReportSummary | null>(null);
-  const [monthly, setMonthly] = useState<MonthlyRow[]>([]);
-  const [top, setTop] = useState<TopFlower[]>([]);
-  const [outstanding, setOutstanding] = useState<Outstanding | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const load = useCallback(async () => {
-    const [s, m, t, o] = await Promise.all([
-      api<ReportSummary>(`/reports/summary?from=${from}&to=${to}`),
-      api<MonthlyRow[]>('/reports/monthly'),
-      api<TopFlower[]>(`/reports/top-flowers?from=${from}&to=${to}&limit=8`),
-      api<Outstanding>('/reports/outstanding'),
-    ]);
-    setSummary(s);
-    setMonthly(m);
-    setTop(t);
-    setOutstanding(o);
-    setLoading(false);
-  }, [from, to]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  const { summary, monthly, top, outstanding, loading } = useDashboardData(from, to);
 
   const columns = useMemo<Column[]>(
     () =>
