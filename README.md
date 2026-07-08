@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# mono-reports-web
 
-## Getting Started
+Frontend for MONO's income tracker — **Next.js 16 + TypeScript + Tailwind 4**.
+Talks to `mono-reports-api` over HTTP with a JWT (stored in `localStorage`).
 
-First, run the development server:
+## Run (local dev)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+# .env.local already points at the local API:
+#   NEXT_PUBLIC_API_URL=http://localhost:3000/api
+npm run dev        # http://localhost:3001  (port matches the API's CORS_ORIGIN)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Make sure `mono-reports-api` is running first (see its README). Log in with the seeded
+owner: `owner@mono.local` / `changeme123`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Pages
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `/login` — owner login
+- `/dashboard` — брудний/чистий дохід за період, дохід за місяцями, топ-квіти, борги
+- `/catalog` — квіти/матеріали з двома цінами (закупівельна + продажна)
+- `/bouquets` — список букетів
+- `/bouquets/[id]` — конструктор: додаєш квіти з каталогу → живий брудний і чистий дохід,
+  витрати по букету, статуси (підтвердити / продати / клонувати / скасувати)
+- `/expenses` — загальні витрати (оренда, зарплата, реклама…)
 
-## Learn More
+## Production
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Point `NEXT_PUBLIC_API_URL` at the deployed API and set the API's `CORS_ORIGIN` to this
+app's URL. Deploy on Vercel or Cloudflare.
