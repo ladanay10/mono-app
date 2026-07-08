@@ -57,9 +57,9 @@ export default function DashboardPage() {
 
   const donutSegments = useMemo(() => {
     if (!summary) return [];
+    // Packaging add-ons are income (inside «Чистий дохід»), not a cost segment.
     return [
       { label: 'Собівартість квітів', value: summary.flowersCostKopiyky, color: chartPalette.clay },
-      { label: 'Витрати по букетах', value: summary.bouquetExpensesKopiyky, color: chartPalette.gold },
       { label: 'Загальні витрати', value: summary.generalExpensesKopiyky, color: chartPalette.inkFaint },
       { label: 'Чистий дохід', value: Math.max(0, summary.netProfitKopiyky), color: chartPalette.sage },
     ];
