@@ -21,6 +21,7 @@ import {
   IconChevronLeft,
   IconCopy,
   IconPlus,
+  IconSparkle,
   IconTrash,
   IconWallet,
   IconX,
@@ -28,6 +29,7 @@ import {
 import { AddLinesModal } from './_components/add-lines-modal';
 import { CustomLineModal } from './_components/custom-line-modal';
 import { ExpensesModal } from './_components/expenses-modal';
+import { SaveTemplateModal } from './_components/save-template-modal';
 import { SellModal } from './_components/sell-modal';
 import { pluralUk } from '@/lib/plural';
 import { useBouquetDetail } from '@/lib/hooks/use-bouquet-detail';
@@ -43,6 +45,7 @@ export default function BouquetPage() {
   const [customOpen, setCustomOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [expensesOpen, setExpensesOpen] = useState(false);
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
   const [title, setTitle] = useState('');
 
   // Keep the editable title in sync with the loaded bouquet.
@@ -135,6 +138,11 @@ export default function BouquetPage() {
             >
               <IconCopy width={17} height={17} /> Клонувати
             </Button>
+            {detail.lines.length > 0 && (
+              <Button variant="ghost" onClick={() => setSaveTemplateOpen(true)}>
+                <IconSparkle width={17} height={17} /> Шаблон
+              </Button>
+            )}
             {isConfirmed && (
               <Button
                 variant="ghost"
@@ -548,6 +556,19 @@ export default function BouquetPage() {
         expenses={expenses}
         run={run}
         disabled={detail.status === 'CANCELLED'}
+      />
+
+      {/* Save as template */}
+      <SaveTemplateModal
+        open={saveTemplateOpen}
+        onClose={() => setSaveTemplateOpen(false)}
+        defaultName={detail.title || ''}
+        onSave={(name) =>
+          run(async () => {
+            await api('/recipes/from-bouquet', { method: 'POST', body: { bouquetId: id, name } });
+            setSaveTemplateOpen(false);
+          }, 'Шаблон збережено')
+        }
       />
     </div>
   );

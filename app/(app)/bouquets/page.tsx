@@ -9,7 +9,8 @@ import { BOUQUET_STATUSES, type BouquetListItem, type BouquetStatus } from '@/li
 import { STATUS_LABEL } from '@/lib/labels';
 import { Button, Card, EmptyState, IconButton, Input, PageHeader, Spinner, StatusBadge } from '@/components/ui';
 import { Select, type SelectOption } from '@/components/select';
-import { IconBouquet, IconChevronLeft, IconPlus, IconSearch } from '@/components/icons';
+import { IconBouquet, IconChevronLeft, IconPlus, IconSearch, IconSparkle } from '@/components/icons';
+import { TemplatesModal } from './_components/templates-modal';
 
 type FilterStatus = BouquetStatus | 'ALL';
 
@@ -24,6 +25,7 @@ export default function BouquetsPage() {
   const [creating, setCreating] = useState(false);
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<FilterStatus>('ALL');
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -59,9 +61,14 @@ export default function BouquetsPage() {
         title="Букети"
         subtitle="Кожен букет — окрема одиниця доходу з живим підрахунком прибутку"
         actions={
-          <Button onClick={createBouquet} disabled={creating}>
-            <IconPlus width={18} height={18} /> {creating ? 'Створюємо…' : 'Новий букет'}
-          </Button>
+          <>
+            <Button variant="secondary" onClick={() => setTemplatesOpen(true)}>
+              <IconSparkle width={18} height={18} /> З шаблону
+            </Button>
+            <Button onClick={createBouquet} disabled={creating}>
+              <IconPlus width={18} height={18} /> {creating ? 'Створюємо…' : 'Новий букет'}
+            </Button>
+          </>
         }
       />
 
@@ -200,6 +207,12 @@ export default function BouquetsPage() {
           </>
         )}
       </Card>
+
+      <TemplatesModal
+        open={templatesOpen}
+        onClose={() => setTemplatesOpen(false)}
+        onCreated={(bid) => router.push(`/bouquets/${bid}`)}
+      />
     </div>
   );
 }

@@ -87,6 +87,24 @@ export interface Expense {
   incurredOn: string;
 }
 
+export interface RecipeLine {
+  id: string;
+  catalogItemId: string | null;
+  itemNameSnapshot: string;
+  unitSnapshot: Unit;
+  quantity: string; // numeric from the API
+  unitPurchasePriceKopiyky: number;
+  unitSalePriceKopiyky: number;
+}
+
+export interface Recipe {
+  id: string;
+  name: string;
+  notes: string | null;
+  createdAt: string;
+  lines: RecipeLine[];
+}
+
 export interface ReportSummary {
   from: string;
   to: string;
