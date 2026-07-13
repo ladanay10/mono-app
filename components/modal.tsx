@@ -80,7 +80,9 @@ export function Modal({
 
   if (!mounted || !open) return null;
 
-  const widths = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl' };
+  // On a phone the modal IS a bottom sheet — it must span the full width. The
+  // max-width only kicks in once it becomes a centred dialog (sm and up).
+  const widths = { sm: 'sm:max-w-sm', md: 'sm:max-w-lg', lg: 'sm:max-w-2xl' };
 
   return createPortal(
     <div className="fixed inset-0 z-1100 flex items-end justify-center p-0 sm:items-center sm:p-4">

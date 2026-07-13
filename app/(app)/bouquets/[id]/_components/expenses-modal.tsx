@@ -9,7 +9,7 @@ import { EXPENSE_KIND_LABEL } from '@/lib/labels';
 import { Button, Field, IconButton, Input, MoneyInput } from '@/components/ui';
 import { Select, type SelectOption } from '@/components/select';
 import { Modal } from '@/components/modal';
-import { IconPlus, IconX } from '@/components/icons';
+import { IconX } from '@/components/icons';
 
 const EXPENSE_SELECT: SelectOption<ExpenseKind>[] = EXPENSE_KINDS.map((k) => ({
   value: k,
@@ -41,6 +41,7 @@ export function ExpensesModal({
 
   const total = expenses.reduce((s, e) => s + e.amountKopiyky, 0);
 
+  // The footer's primary action saves — there is no separate «+» button.
   async function add() {
     if (!amount) return;
     await run(async () => {
@@ -57,7 +58,8 @@ export function ExpensesModal({
       });
       setAmount('');
       setDesc('');
-    }, 'Витрату додано');
+    }, 'Надбавку додано');
+    onClose();
   }
 
   return (
@@ -68,9 +70,14 @@ export function ExpensesModal({
       description="Пакування, доставка тощо — клієнт платить, це 100% навар. Закупівлю трекай у «Витрати»."
       size="sm"
       footer={
-        <Button variant="ghost" onClick={onClose}>
-          Готово
-        </Button>
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            Скасувати
+          </Button>
+          <Button onClick={add} disabled={disabled || !amount}>
+            Додати
+          </Button>
+        </>
       }
     >
       <div className="space-y-4">
@@ -109,20 +116,17 @@ export function ExpensesModal({
 
         {!disabled && (
           <div className="rounded-xl border border-line bg-surface-soft p-3">
-            <div className="flex flex-wrap items-end gap-2.5">
-              <Field label="Тип" className="w-32">
-                <Select value={kind} onChange={setKind} options={EXPENSE_SELECT} ariaLabel="Тип витрати" />
+            <div className="grid grid-cols-2 gap-2.5">
+              <Field label="Тип">
+                <Select value={kind} onChange={setKind} options={EXPENSE_SELECT} ariaLabel="Тип надбавки" />
               </Field>
-              <Field label="Сума" className="w-24">
+              <Field label="Сума">
                 <MoneyInput value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
               </Field>
-              <Field label="Опис" className="min-w-[110px] flex-1">
-                <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="стрічка…" />
-              </Field>
-              <Button variant="secondary" onClick={add} disabled={!amount}>
-                <IconPlus width={17} height={17} />
-              </Button>
             </div>
+            <Field label="Опис" className="mt-2.5">
+              <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="стрічка…" />
+            </Field>
           </div>
         )}
       </div>
