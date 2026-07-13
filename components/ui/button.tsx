@@ -54,7 +54,9 @@ export function IconButton({
       {...props}
       aria-label={label}
       title={label}
-      className={`inline-grid h-8 w-8 cursor-pointer place-items-center rounded-lg transition-colors duration-150 ${tones[tone]} ${className}`}
+      // 44px tap target on touch devices (Apple HIG / Material minimum); the
+      // compact 32px square is fine on a pointer device.
+      className={`inline-grid h-11 w-11 cursor-pointer place-items-center rounded-lg transition-colors duration-150 sm:h-8 sm:w-8 ${tones[tone]} ${className}`}
     />
   );
 }

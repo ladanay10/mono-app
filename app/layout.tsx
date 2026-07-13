@@ -29,6 +29,9 @@ export const viewport: Viewport = {
   themeColor: '#b0475f',
   width: 'device-width',
   initialScale: 1,
+  // Shrink the layout when the on-screen keyboard opens instead of letting it
+  // cover the focused field. (No maximum-scale/user-scalable: never block zoom.)
+  interactiveWidget: 'resizes-content',
 };
 
 export default function RootLayout({

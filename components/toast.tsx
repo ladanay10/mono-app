@@ -55,7 +55,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         createPortal(
           <div
             aria-live="polite"
-            className="pointer-events-none fixed inset-x-0 bottom-24 z-1200 flex flex-col items-center gap-2 px-4 sm:inset-x-auto sm:right-5 sm:items-end lg:bottom-5"
+            // Clear the bottom tab bar AND the iOS home indicator on phones.
+            className="pointer-events-none fixed inset-x-0 bottom-[calc(6rem+env(safe-area-inset-bottom))] z-1200 flex flex-col items-center gap-2 px-4 sm:inset-x-auto sm:right-5 sm:items-end lg:bottom-5"
           >
             {toasts.map((t) => (
               <ToastCard key={t.id} toast={t} onClose={() => dismiss(t.id)} />

@@ -13,8 +13,10 @@ export function Label({ children, className = '', ...props }: React.LabelHTMLAtt
   );
 }
 
+// text-base (16px) on mobile is deliberate: iOS Safari auto-zooms — and yanks the
+// viewport around — whenever a focused control's font-size is under 16px.
 const FIELD_BASE =
-  'w-full rounded-xl border border-line-strong bg-surface px-3.5 text-sm text-ink placeholder:text-ink-faint outline-none transition-[border-color,box-shadow] duration-150 focus:border-bloom focus:ring-4 focus:ring-bloom/12 disabled:cursor-not-allowed disabled:bg-surface-sunk disabled:text-ink-faint';
+  'w-full rounded-xl border border-line-strong bg-surface px-3.5 text-base sm:text-sm text-ink placeholder:text-ink-faint outline-none transition-[border-color,box-shadow] duration-150 focus:border-bloom focus:ring-4 focus:ring-bloom/12 disabled:cursor-not-allowed disabled:bg-surface-sunk disabled:text-ink-faint';
 
 export const Input = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   function Input({ className = '', ...props }, ref) {

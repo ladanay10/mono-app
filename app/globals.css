@@ -89,6 +89,17 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* Kill the 300ms tap delay and stop double-tap zoom on controls (iOS/Android). */
+button,
+a,
+[role='button'],
+[role='option'],
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
 body {
   font-family: var(--font-sans);
   background:

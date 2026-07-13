@@ -7,6 +7,7 @@ import {
   IconChevronDown,
   IconChevronLeft,
 } from "@/components/icons";
+import { useIsMobile } from "@/lib/hooks/use-is-mobile";
 
 const WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
 const MONTHS = [
@@ -49,7 +50,13 @@ function addMonth(y: number, m: number, delta: number) {
 }
 
 type Preset = { label: string; range: () => { from: string; to: string } };
-type Pos = { left: number; top: number; width: number; openUp: boolean };
+type Pos = {
+  left: number;
+  top: number;
+  width: number;
+  openUp: boolean;
+  maxH: number;
+};
 
 /* Popover anchored to a trigger, portaled above modals. Shared by both pickers. */
 function useAnchoredPopover(
@@ -65,15 +72,25 @@ function useAnchoredPopover(
     const el = triggerRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    // visualViewport reflects what's actually visible (keyboard open, URL bar
+    // collapsed); innerHeight does not, which pushed popovers off-screen.
+    const vw = window.visualViewport?.width ?? window.innerWidth;
+    const vh = window.visualViewport?.height ?? window.innerHeight;
     const w = Math.min(width, vw - 16);
     let left = r.left;
     if (left + w > vw - 8) left = vw - 8 - w;
     if (left < 8) left = 8;
-    const spaceBelow = vh - r.bottom;
-    const openUp = spaceBelow < 400 && r.top > spaceBelow;
-    setPos({ left, top: openUp ? r.top - 6 : r.bottom + 6, width: w, openUp });
+    const spaceBelow = vh - r.bottom - 14;
+    const spaceAbove = r.top - 14;
+    const openUp = spaceBelow < 360 && spaceAbove > spaceBelow;
+    const maxH = Math.max(0, openUp ? spaceAbove : spaceBelow);
+    setPos({
+      left,
+      top: openUp ? r.top - 6 : r.bottom + 6,
+      width: w,
+      openUp,
+      maxH,
+    });
   }, [width]);
 
   useEffect(() => {
@@ -85,9 +102,13 @@ function useAnchoredPopover(
     const onMove = () => reposition();
     window.addEventListener("scroll", onMove, true);
     window.addEventListener("resize", onMove);
+    window.visualViewport?.addEventListener("resize", onMove);
+    window.visualViewport?.addEventListener("scroll", onMove);
     return () => {
       window.removeEventListener("scroll", onMove, true);
       window.removeEventListener("resize", onMove);
+      window.visualViewport?.removeEventListener("resize", onMove);
+      window.visualViewport?.removeEventListener("scroll", onMove);
     };
   }, [open, reposition]);
 
@@ -116,9 +137,76 @@ const POP_STYLE = (pos: Pos): React.CSSProperties => ({
   left: pos.left,
   top: pos.top,
   width: pos.width,
+  maxHeight: pos.maxH,
+  overflowY: "auto",
   transform: pos.openUp ? "translateY(-100%)" : undefined,
   zIndex: 1200, // above modals (1100)
 });
+
+/**
+ * Bottom sheet on phones, anchored popover on pointer devices. A calendar
+ * anchored near the bottom of a phone screen has nowhere to render — it used to
+ * get clipped/squeezed against the viewport edge and the bottom tab bar.
+ */
+function PopoverShell({
+  isMobile,
+  pos,
+  popRef,
+  onClose,
+  label,
+  children,
+}: {
+  isMobile: boolean;
+  pos: Pos | null;
+  popRef: React.RefObject<HTMLDivElement | null>;
+  onClose: () => void;
+  label: string;
+  children: React.ReactNode;
+}) {
+  if (isMobile) {
+    return createPortal(
+      <div className="fixed inset-0 z-1200 flex flex-col justify-end">
+        <div
+          className="animate-fade-in absolute inset-0 bg-ink/45 backdrop-blur-[2px]"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+        <div
+          ref={popRef}
+          role="dialog"
+          aria-label={label}
+          className="animate-rise-in relative max-h-[85dvh] overflow-y-auto overscroll-contain rounded-t-3xl border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] shadow-pop"
+        >
+          <div className="flex items-center justify-between border-b border-line px-5 py-3">
+            <span className="text-sm font-semibold text-ink">{label}</span>
+            <button
+              type="button"
+              onClick={onClose}
+              className="cursor-pointer text-sm font-medium text-ink-soft"
+            >
+              Закрити
+            </button>
+          </div>
+          {children}
+        </div>
+      </div>,
+      document.body,
+    );
+  }
+  if (!pos) return null;
+  return createPortal(
+    <div
+      ref={popRef}
+      role="dialog"
+      aria-label={label}
+      style={POP_STYLE(pos)}
+      className="animate-pop-in overflow-hidden rounded-2xl border border-line bg-surface shadow-pop"
+    >
+      {children}
+    </div>,
+    document.body,
+  );
+}
 
 function MonthNav({
   view,
@@ -204,6 +292,7 @@ export function DateRangePicker({
   const today = todayKyiv();
 
   const { triggerRef, popRef, pos } = useAnchoredPopover(open, setOpen, 312);
+  const isMobile = useIsMobile();
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
@@ -295,17 +384,15 @@ export function DateRangePicker({
         />
       </button>
 
-      {mounted &&
-        open &&
-        pos &&
-        createPortal(
-          <div
-            ref={popRef}
-            role="dialog"
-            aria-label="Вибір періоду"
-            style={POP_STYLE(pos)}
-            className="animate-pop-in overflow-hidden rounded-2xl border border-line bg-surface shadow-pop"
-          >
+      {mounted && open && (
+        <PopoverShell
+          isMobile={isMobile}
+          pos={pos}
+          popRef={popRef}
+          onClose={() => setOpen(false)}
+          label="Вибір періоду"
+        >
+          <>
             {presets.length > 0 && (
               <div className="flex flex-wrap gap-1.5 border-b border-line p-2.5">
                 {presets.map((p, i) => (
@@ -379,9 +466,9 @@ export function DateRangePicker({
                 </button>
               </div>
             </div>
-          </div>,
-          document.body,
-        )}
+          </>
+        </PopoverShell>
+      )}
     </div>
   );
 }
@@ -408,6 +495,7 @@ export function DatePicker({
   });
   const today = todayKyiv();
   const { triggerRef, popRef, pos } = useAnchoredPopover(open, setOpen, 300);
+  const isMobile = useIsMobile();
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
@@ -449,17 +537,15 @@ export function DatePicker({
         />
       </button>
 
-      {mounted &&
-        open &&
-        pos &&
-        createPortal(
-          <div
-            ref={popRef}
-            role="dialog"
-            aria-label="Вибір дати"
-            style={POP_STYLE(pos)}
-            className="animate-pop-in overflow-hidden rounded-2xl border border-line bg-surface p-3 shadow-pop"
-          >
+      {mounted && open && (
+        <PopoverShell
+          isMobile={isMobile}
+          pos={pos}
+          popRef={popRef}
+          onClose={() => setOpen(false)}
+          label="Вибір дати"
+        >
+          <div className="p-3">
             <MonthNav view={view} setView={setView} />
             <Weekdays />
             <div className="grid grid-cols-7 gap-1">
@@ -488,9 +574,9 @@ export function DatePicker({
                 );
               })}
             </div>
-          </div>,
-          document.body,
-        )}
+          </div>
+        </PopoverShell>
+      )}
     </div>
   );
 }

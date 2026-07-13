@@ -44,17 +44,37 @@ export function Modal({
       if (e.key === 'Escape') onCloseRef.current();
     };
     document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+
+    // iOS Safari ignores `overflow: hidden` on <body> — the page keeps scrolling
+    // (and rubber-banding) behind the sheet. Pinning the body and restoring the
+    // scroll offset on close is the only lock that actually holds there.
+    const body = document.body;
+    const scrollY = window.scrollY;
+    const prev = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+    };
+    body.style.overflow = 'hidden';
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.width = '100%';
+
     // Focus the dialog for a11y/Esc, but never yank focus away from an element
     // already focused inside it (e.g. an autoFocus input).
     requestAnimationFrame(() => {
       const card = cardRef.current;
       if (card && !card.contains(document.activeElement)) card.focus();
     });
+
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
+      body.style.overflow = prev.overflow;
+      body.style.position = prev.position;
+      body.style.top = prev.top;
+      body.style.width = prev.width;
+      window.scrollTo(0, scrollY);
     };
   }, [open]);
 
@@ -74,7 +94,9 @@ export function Modal({
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        className={`animate-rise-in relative flex w-full ${widths[size]} max-h-[92dvh] flex-col overflow-hidden rounded-t-3xl border border-line bg-surface shadow-pop outline-none sm:rounded-3xl`}
+        // pb-safe: on a phone the sheet sits flush with the bottom, so the footer
+        // buttons would otherwise land under the iOS home indicator.
+        className={`animate-rise-in relative flex w-full ${widths[size]} max-h-[92dvh] flex-col overflow-hidden rounded-t-3xl border border-line bg-surface pb-[env(safe-area-inset-bottom)] shadow-pop outline-none sm:rounded-3xl sm:pb-0`}
       >
         {(title || description) && (
           <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
@@ -91,7 +113,7 @@ export function Modal({
             </button>
           </div>
         )}
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5">{children}</div>
         {footer && (
           <div className="flex items-center justify-end gap-2 border-t border-line bg-surface-soft px-5 py-3.5">
             {footer}

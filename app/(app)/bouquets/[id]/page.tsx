@@ -329,7 +329,8 @@ export default function BouquetPage() {
                                   api(`/bouquets/${id}/lines/${l.id}`, { method: 'PATCH', body: { quantity: v } }),
                                 );
                             }}
-                            className="nums w-16 rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-right text-sm outline-none focus:border-bloom focus:ring-4 focus:ring-bloom/12"
+                            inputMode="decimal"
+                            className="nums w-16 rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-right text-base outline-none focus:border-bloom focus:ring-4 focus:ring-bloom/12 sm:text-sm"
                           />
                         ) : (
                           <span className="nums text-sm text-ink-soft">×{l.quantity}</span>
