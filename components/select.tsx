@@ -279,8 +279,8 @@ export function Select<T extends string>({
           sizes[size]
         } ${
           open
-            ? 'border-bloom ring-4 ring-bloom/12'
-            : 'border-line-strong hover:border-ink-faint/60'
+            ? 'border-bloom'
+            : 'border-line hover:border-ink-faint/60'
         } ${buttonClassName}`}
       >
         {selected?.icon && <span className="shrink-0 text-ink-soft">{selected.icon}</span>}

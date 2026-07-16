@@ -58,7 +58,7 @@ export function ExpensesModal({
       });
       setAmount('');
       setDesc('');
-    }, 'Надбавку додано');
+    }, 'Додано');
     onClose();
   }
 
@@ -66,7 +66,7 @@ export function ExpensesModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Надбавки"
+      title="Інше"
       description="Пакування, доставка тощо — клієнт платить, це 100% навар. Закупівлю трекай у «Витрати»."
       size="sm"
       footer={
@@ -111,14 +111,14 @@ export function ExpensesModal({
             </div>
           </div>
         ) : (
-          <p className="text-sm text-ink-faint">Поки немає надбавок на цьому букеті.</p>
+          <p className="text-sm text-ink-faint">Поки немає нічого додаткового.</p>
         )}
 
         {!disabled && (
           <div className="rounded-xl border border-line bg-surface-soft p-3">
             <div className="grid grid-cols-2 gap-2.5">
               <Field label="Тип">
-                <Select value={kind} onChange={setKind} options={EXPENSE_SELECT} ariaLabel="Тип надбавки" />
+                <Select value={kind} onChange={setKind} options={EXPENSE_SELECT} ariaLabel="Тип" />
               </Field>
               <Field label="Сума">
                 <MoneyInput value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />

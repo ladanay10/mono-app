@@ -3,12 +3,26 @@
 import { useEffect, useRef } from 'react';
 import * as echarts from 'echarts/core';
 import { BarChart, PieChart } from 'echarts/charts';
-import { GridComponent, TooltipComponent, TitleComponent } from 'echarts/components';
+import {
+  GridComponent,
+  LegendComponent,
+  TooltipComponent,
+  TitleComponent,
+} from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import type { EChartsCoreOption } from 'echarts/core';
 
-// Register only what we use — keeps the bundle lean.
-echarts.use([BarChart, PieChart, GridComponent, TooltipComponent, TitleComponent, CanvasRenderer]);
+// Register only what we use — keeps the bundle lean. The grouped bar chart uses
+// a legend, so LegendComponent must be registered or ECharts throws at setOption.
+echarts.use([
+  BarChart,
+  PieChart,
+  GridComponent,
+  LegendComponent,
+  TooltipComponent,
+  TitleComponent,
+  CanvasRenderer,
+]);
 
 export function EChart({
   option,

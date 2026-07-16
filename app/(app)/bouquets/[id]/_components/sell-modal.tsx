@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { formatUAH, kopiykyToUah, uahToKopiyky } from '@/lib/money';
 import { todayKyiv } from '@/lib/date';
-import { Alert, Button, Field, MoneyInput } from '@/components/ui';
+import { Alert, Button, Field, Input, MoneyInput } from '@/components/ui';
 import { DatePicker } from '@/components/datepicker';
 import { Modal } from '@/components/modal';
 import { IconCheck, IconWallet } from '@/components/icons';
@@ -12,22 +12,26 @@ export function SellModal({
   open,
   onClose,
   revenue,
+  defaultTitle,
   onSell,
 }: {
   open: boolean;
   onClose: () => void;
   revenue: number;
-  onSell: (soldOn: string, amountReceivedKopiyky?: number) => void;
+  defaultTitle: string;
+  onSell: (soldOn: string, amountReceivedKopiyky: number | undefined, title: string) => void;
 }) {
   const [soldOn, setSoldOn] = useState(todayKyiv());
   const [received, setReceived] = useState('');
+  const [title, setTitle] = useState('');
 
   useEffect(() => {
     if (open) {
       setSoldOn(todayKyiv());
       setReceived(String(kopiykyToUah(revenue)));
+      setTitle(defaultTitle);
     }
-  }, [open, revenue]);
+  }, [open, revenue, defaultTitle]);
 
   const receivedK = uahToKopiyky(received);
   const owed = revenue - receivedK;
@@ -44,7 +48,7 @@ export function SellModal({
           <Button variant="ghost" onClick={onClose}>
             Скасувати
           </Button>
-          <Button onClick={() => onSell(soldOn, received !== '' ? receivedK : undefined)}>
+          <Button onClick={() => onSell(soldOn, received !== '' ? receivedK : undefined, title)}>
             <IconWallet width={17} height={17} /> Продати
           </Button>
         </>
@@ -55,6 +59,10 @@ export function SellModal({
           <span className="text-sm text-ink-soft">Сума букета</span>
           <span className="nums text-xl font-semibold text-bloom-ink">{formatUAH(revenue)}</span>
         </div>
+
+        <Field label="Назва букета" hint="Щоб було легше знайти в історії">
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Напр. Букет для Олі" />
+        </Field>
 
         <Field label="Дата продажу">
           <DatePicker value={soldOn} onChange={setSoldOn} />

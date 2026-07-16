@@ -107,7 +107,7 @@ export default function BouquetPage() {
                 onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
                 placeholder="Назва букета…"
                 aria-label="Назва букета"
-                className="w-full max-w-lg rounded-xl border border-line bg-surface/60 px-3 py-2 font-display text-2xl font-semibold text-ink outline-none transition-[border-color,background,box-shadow] placeholder:font-sans placeholder:text-base placeholder:font-normal placeholder:text-ink-faint focus:border-bloom focus:bg-surface focus:ring-4 focus:ring-bloom/12 sm:-ml-3 sm:border-transparent sm:bg-transparent sm:text-3xl sm:hover:border-line sm:hover:bg-surface/60"
+                className="w-full max-w-lg rounded-xl border border-line bg-surface/60 px-3 py-2 font-display text-2xl font-semibold text-ink outline-none transition-[border-color,background,box-shadow] placeholder:font-sans placeholder:text-base placeholder:font-normal placeholder:text-ink-faint focus:border-bloom focus:bg-surface sm:-ml-3 sm:border-transparent sm:bg-transparent sm:text-3xl sm:hover:border-line sm:hover:bg-surface/60"
               />
             ) : (
               <h1 className="font-display text-2xl font-semibold text-ink sm:text-3xl">{detail.title || 'Без назви'}</h1>
@@ -221,19 +221,18 @@ export default function BouquetPage() {
             >
               <IconPlus width={20} height={20} /> Додати квіти
             </button>
-            <div className="relative mt-2.5 flex items-center justify-center gap-4 text-xs font-medium text-white/75">
+            <div className="relative mt-2.5 grid grid-cols-2 gap-2">
               <button
                 onClick={() => setCustomOpen(true)}
-                className="cursor-pointer transition-colors hover:text-white"
+                className="flex h-11 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-white/15 text-sm font-medium text-white backdrop-blur transition-colors active:bg-white/25"
               >
-                + Своя позиція
+                <IconPlus width={16} height={16} /> Своя позиція
               </button>
-              <span className="text-white/30">·</span>
               <button
                 onClick={() => setExpensesOpen(true)}
-                className="cursor-pointer transition-colors hover:text-white"
+                className="flex h-11 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-white/15 text-sm font-medium text-white backdrop-blur transition-colors active:bg-white/25"
               >
-                Надбавка
+                <IconWallet width={16} height={16} /> Інше
               </button>
             </div>
           </div>
@@ -261,7 +260,7 @@ export default function BouquetPage() {
               <div className="nums mt-1 text-lg font-semibold text-ink">{formatUAH(cost)}</div>
             </div>
             <div className="bg-surface p-5">
-              <div className="text-xs font-medium text-ink-soft">Надбавка (пакування)</div>
+              <div className="text-xs font-medium text-ink-soft">Інше (пакування)</div>
               <div className="nums mt-1 text-lg font-semibold text-sage-ink">{formatUAH(bouqExp)}</div>
               <div className="mt-0.5 text-[11px] text-ink-faint">у наварі · 100%</div>
             </div>
@@ -330,7 +329,7 @@ export default function BouquetPage() {
                                 );
                             }}
                             inputMode="decimal"
-                            className="nums w-16 rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-right text-base outline-none focus:border-bloom focus:ring-4 focus:ring-bloom/12 sm:text-sm"
+                            className="nums w-16 rounded-lg border border-line bg-surface px-2 py-1.5 text-right text-base outline-none focus:border-bloom sm:text-sm"
                           />
                         ) : (
                           <span className="nums text-sm text-ink-soft">×{l.quantity}</span>
@@ -363,7 +362,7 @@ export default function BouquetPage() {
               {expenses.length > 0 && (
                 <div className="border-t-2 border-line bg-surface-soft">
                   <div className="px-4 pb-1.5 pt-3 text-xs font-semibold uppercase tracking-wide text-ink-faint">
-                    Надбавки <span className="font-normal normal-case text-ink-faint/80">· 100% навар</span>
+                    Інше <span className="font-normal normal-case text-ink-faint/80">· 100% навар</span>
                   </div>
                   <ul>
                     {expenses.map((e) => (
@@ -377,7 +376,7 @@ export default function BouquetPage() {
                     ))}
                   </ul>
                   <div className="mt-1 flex items-center justify-between border-t border-line px-4 py-2.5 text-sm">
-                    <span className="text-ink-soft">Разом надбавок</span>
+                    <span className="text-ink-soft">Разом</span>
                     <span className="nums font-semibold text-ink">{formatUAH(expensesTotal)}</span>
                   </div>
                 </div>
@@ -420,7 +419,7 @@ export default function BouquetPage() {
                                 api(`/bouquets/${id}/lines/${l.id}`, { method: 'PATCH', body: { quantity: v } }),
                               );
                           }}
-                          className="nums w-20 rounded-lg border border-line-strong bg-surface px-2 py-1 text-right text-sm outline-none focus:border-bloom focus:ring-4 focus:ring-bloom/12"
+                          className="nums w-20 rounded-lg border border-line bg-surface px-2 py-1 text-right text-sm outline-none focus:border-bloom"
                         />
                       ) : (
                         <span className="nums">{l.quantity}</span>
@@ -453,7 +452,7 @@ export default function BouquetPage() {
                       colSpan={8}
                       className="border-t-2 border-line bg-surface-soft px-5 pb-1.5 pt-3 text-xs font-semibold uppercase tracking-wide text-ink-faint"
                     >
-                      Надбавки{' '}
+                      Інше{' '}
                       <span className="font-normal normal-case text-ink-faint/80">· пакування тощо · 100% навар</span>
                     </td>
                   </tr>
@@ -470,7 +469,7 @@ export default function BouquetPage() {
                   ))}
                   <tr className="bg-surface-soft">
                     <td colSpan={6} className="border-t border-line px-5 py-2.5 text-sm text-ink-soft">
-                      Разом надбавок
+                      Разом
                     </td>
                     <td
                       colSpan={2}
@@ -495,7 +494,7 @@ export default function BouquetPage() {
               Своя позиція
             </Button>
             <Button variant="ghost" onClick={() => setExpensesOpen(true)}>
-              <IconWallet width={17} height={17} /> Надбавка
+              <IconWallet width={17} height={17} /> Інше
             </Button>
           </div>
         )}
@@ -503,7 +502,7 @@ export default function BouquetPage() {
         {isConfirmed && (
           <div className="flex border-t border-line bg-surface-soft px-5 py-4">
             <Button variant="secondary" onClick={() => setExpensesOpen(true)}>
-              <IconWallet width={17} height={17} /> Надбавка
+              <IconWallet width={17} height={17} /> Інше
             </Button>
           </div>
         )}
@@ -514,8 +513,16 @@ export default function BouquetPage() {
         open={sellOpen}
         onClose={() => setSellOpen(false)}
         revenue={revenue}
-        onSell={(soldOn, amountReceivedKopiyky) =>
+        defaultTitle={detail.title ?? ''}
+        onSell={(soldOn, amountReceivedKopiyky, name) =>
           run(async () => {
+            // Save an entered/edited name first, then sell.
+            if ((detail.title ?? '') !== name.trim()) {
+              await api(`/bouquets/${id}`, {
+                method: 'PATCH',
+                body: { title: name.trim() || null },
+              });
+            }
             await api(`/bouquets/${id}/sell`, {
               method: 'POST',
               body: { soldOn, ...(amountReceivedKopiyky != null ? { amountReceivedKopiyky } : {}) },

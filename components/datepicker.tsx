@@ -365,8 +365,8 @@ export function DateRangePicker({
         aria-expanded={open}
         className={`flex h-10 w-full items-center gap-2 rounded-xl border bg-surface px-3.5 text-left text-sm outline-none transition-[border-color,box-shadow] duration-150 ${
           open
-            ? "border-bloom ring-4 ring-bloom/12"
-            : "border-line-strong hover:border-ink-faint/60"
+            ? "border-bloom"
+            : "border-line hover:border-ink-faint/60"
         }`}
       >
         <IconCalendar
@@ -516,8 +516,8 @@ export function DatePicker({
         aria-expanded={open}
         className={`flex h-10 w-full items-center gap-2 rounded-xl border bg-surface px-3.5 text-left text-sm outline-none transition-[border-color,box-shadow] duration-150 ${
           open
-            ? "border-bloom ring-4 ring-bloom/12"
-            : "border-line-strong hover:border-ink-faint/60"
+            ? "border-bloom"
+            : "border-line hover:border-ink-faint/60"
         }`}
       >
         <IconCalendar
