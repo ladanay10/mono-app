@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#b0475f',
+  themeColor: '#0c0d11',
   width: 'device-width',
   initialScale: 1,
   // Shrink the layout when the on-screen keyboard opens instead of letting it

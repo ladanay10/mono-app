@@ -109,7 +109,7 @@ export default function BouquetPage() {
                 }
                 placeholder="Назва букета…"
                 aria-label="Назва букета"
-                className="w-full max-w-lg rounded-xl border border-line bg-surface/60 px-3 py-2 font-display text-2xl font-semibold text-ink outline-none transition-[border-color,background,box-shadow] placeholder:font-sans placeholder:text-base placeholder:font-normal placeholder:text-ink-faint focus:border-bloom focus:bg-surface sm:-ml-3 sm:border-transparent sm:bg-transparent sm:text-3xl sm:hover:border-line sm:hover:bg-surface/60"
+                className="w-full max-w-lg rounded-xl border border-line bg-surface/60 px-3 py-2 font-display text-2xl font-semibold text-ink outline-none transition-[border-color,background,box-shadow] placeholder:font-normal placeholder:text-ink-faint focus:border-line-strong focus:bg-surface sm:-ml-3 sm:border-transparent sm:bg-transparent sm:text-3xl sm:hover:border-line sm:hover:bg-surface/60"
               />
             ) : (
               <h1 className="font-display text-2xl font-semibold text-ink sm:text-3xl">
@@ -212,8 +212,7 @@ export default function BouquetPage() {
           <div
             className="relative overflow-hidden rounded-2xl p-4 text-white shadow-lift"
             style={{
-              background:
-                "linear-gradient(135deg, var(--color-bloom), var(--color-bloom-strong))",
+              background: "linear-gradient(135deg, #1c1f2a, #12141b)",
             }}
           >
             <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/10" />
@@ -247,7 +246,7 @@ export default function BouquetPage() {
 
             <button
               onClick={() => setPickerOpen(true)}
-              className="relative mt-4 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-white text-[15px] font-semibold text-bloom-ink shadow-soft transition-transform active:translate-y-px"
+              className="relative mt-4 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-white text-[15px] font-semibold text-canvas shadow-soft transition-transform active:translate-y-px"
             >
               <IconPlus width={20} height={20} /> Додати квіти
             </button>

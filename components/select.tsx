@@ -303,7 +303,7 @@ export function Select<T extends string>({
         createPortal(
           <div className="fixed inset-0 z-1200 flex flex-col justify-end">
             <div
-              className="animate-fade-in absolute inset-0 bg-ink/45 backdrop-blur-[2px]"
+              className="animate-fade-in absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={closeList}
               aria-hidden="true"
             />

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import * as echarts from 'echarts/core';
-import { BarChart, PieChart } from 'echarts/charts';
+import { BarChart, PieChart, LineChart } from 'echarts/charts';
 import {
   GridComponent,
   LegendComponent,
@@ -17,6 +17,7 @@ import type { EChartsCoreOption } from 'echarts/core';
 echarts.use([
   BarChart,
   PieChart,
+  LineChart,
   GridComponent,
   LegendComponent,
   TooltipComponent,

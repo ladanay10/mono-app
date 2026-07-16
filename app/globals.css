@@ -1,46 +1,46 @@
 @import "tailwindcss";
 
 /* ------------------------------------------------------------------ *
- * MONO — design tokens (warm boutique florist system)
- * Money is precise; the surface is soft. Cream canvas, rosewood bloom,
- * sage for profit, clay for debt/danger, gold for confirmation.
+ * MONO — design tokens (dark premium system)
+ * Deep graphite canvas, glassy raised surfaces, luminous violet as the single
+ * brand accent. Emerald = profit, coral = debt/danger, amber = confirmation.
  * ------------------------------------------------------------------ */
 @theme {
-  /* surfaces */
-  --color-canvas: #f5f0ec;
-  --color-surface: #fffefd;
-  --color-surface-soft: #faf4f0;
-  --color-surface-sunk: #f1e9e3;
+  /* surfaces — graphite: sunk → canvas → raised */
+  --color-canvas: #0c0d11;
+  --color-surface: #16181f;
+  --color-surface-soft: #1d2029;
+  --color-surface-sunk: #101217;
 
-  /* ink */
-  --color-ink: #241d1a;
-  --color-ink-soft: #6f635b;
-  --color-ink-faint: #a3968d;
+  /* ink — near-white → muted → faint */
+  --color-ink: #f3f4f6;
+  --color-ink-soft: #a1a5b0;
+  --color-ink-faint: #6b7080;
 
-  /* lines */
-  --color-line: #ece2db;
-  --color-line-strong: #ddd0c6;
+  /* lines (subtle on dark) */
+  --color-line: #262a33;
+  --color-line-strong: #363b47;
 
-  /* bloom — rosewood primary */
-  --color-bloom: #b0475f;
-  --color-bloom-strong: #983b50;
-  --color-bloom-ink: #8a3247;
-  --color-bloom-tint: #f8e9ed;
+  /* bloom — white, the primary brand accent (on dark) */
+  --color-bloom: #ffffff;
+  --color-bloom-strong: #e6e8ec;
+  --color-bloom-ink: #ffffff;
+  --color-bloom-tint: rgba(255, 255, 255, 0.1);
 
-  /* sage — positive / profit */
-  --color-sage: #4b7d5b;
-  --color-sage-ink: #3a6549;
-  --color-sage-tint: #e7f0e9;
+  /* sage — positive / profit (emerald) */
+  --color-sage: #34d399;
+  --color-sage-ink: #6ee7b7;
+  --color-sage-tint: rgba(52, 211, 153, 0.15);
 
-  /* clay — debt / danger */
-  --color-clay: #b8452f;
-  --color-clay-ink: #9c3722;
-  --color-clay-tint: #f8e7e2;
+  /* clay — debt / danger (coral) */
+  --color-clay: #f4716e;
+  --color-clay-ink: #fca5a3;
+  --color-clay-tint: rgba(244, 113, 110, 0.15);
 
-  /* gold — confirmed / caution */
-  --color-gold: #a9761f;
-  --color-gold-ink: #8a5f14;
-  --color-gold-tint: #f6ecd8;
+  /* gold — confirmed / caution (amber) */
+  --color-gold: #f5b85a;
+  --color-gold-ink: #fbd48c;
+  --color-gold-tint: rgba(245, 184, 90, 0.15);
 
   /* fonts (wired to next/font vars in layout) */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -51,11 +51,11 @@
   --radius-xl: 1rem;
   --radius-2xl: 1.25rem;
 
-  /* soft, warm-tinted elevation */
-  --shadow-soft: 0 1px 2px rgba(60, 40, 34, 0.05), 0 1px 1px rgba(60, 40, 34, 0.04);
-  --shadow-card: 0 1px 2px rgba(60, 40, 34, 0.05), 0 12px 28px -18px rgba(60, 40, 34, 0.22);
-  --shadow-lift: 0 2px 4px rgba(60, 40, 34, 0.06), 0 22px 44px -22px rgba(60, 40, 34, 0.30);
-  --shadow-pop: 0 8px 20px -6px rgba(60, 40, 34, 0.18), 0 24px 48px -22px rgba(60, 40, 34, 0.34);
+  /* deep elevation for dark glass */
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 14px 32px -18px rgba(0, 0, 0, 0.65);
+  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.4), 0 26px 50px -22px rgba(0, 0, 0, 0.7);
+  --shadow-pop: 0 12px 28px -8px rgba(0, 0, 0, 0.6), 0 34px 64px -24px rgba(0, 0, 0, 0.8);
 
   /* motion */
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
@@ -86,6 +86,7 @@
 html {
   background: var(--color-canvas);
   color: var(--color-ink);
+  color-scheme: dark;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -103,15 +104,17 @@ textarea {
 body {
   font-family: var(--font-sans);
   background:
-    radial-gradient(1200px 620px at 100% -8%, rgba(176, 71, 95, 0.06), transparent 60%),
-    radial-gradient(900px 520px at -6% 4%, rgba(169, 118, 31, 0.05), transparent 55%),
+    radial-gradient(1100px 600px at 100% -10%, rgba(255, 255, 255, 0.055), transparent 60%),
+    radial-gradient(920px 540px at -8% 2%, rgba(52, 211, 153, 0.06), transparent 55%),
+    radial-gradient(700px 500px at 50% 108%, rgba(255, 255, 255, 0.03), transparent 60%),
     var(--color-canvas);
+  background-attachment: fixed;
   min-height: 100dvh;
 }
 
 ::selection {
-  background: var(--color-bloom-tint);
-  color: var(--color-bloom-ink);
+  background: rgba(52, 211, 153, 0.3);
+  color: #ffffff;
 }
 
 /* headings default to the display serif */
@@ -126,11 +129,20 @@ h1, h2, h3 {
   font-feature-settings: "tnum" 1;
 }
 
-/* focus ring — visible, on-brand, keyboard only */
+/* focus ring — visible, on-brand, keyboard only.
+   No border-radius here: the outline already follows the element's own radius,
+   and setting one would override the element's shape on focus. */
 :focus-visible {
   outline: 2px solid var(--color-bloom);
   outline-offset: 2px;
-  border-radius: 4px;
+}
+
+/* text fields signal focus with a subtle border, not the ring/glow */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible {
+  outline: none;
 }
 
 /* refined scrollbars */
@@ -155,11 +167,11 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 input[type="number"] { -moz-appearance: textfield; }
 
-/* tint native date pickers toward the brand */
+/* lighten native date-picker indicator for the dark surface */
 input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
-  opacity: 0.55;
-  filter: sepia(0.3) saturate(1.4) hue-rotate(300deg);
+  opacity: 0.6;
+  filter: invert(0.85) brightness(1.1);
 }
 
 .shimmer {
@@ -171,7 +183,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
   animation: shimmer 1.4s infinite;
 }
 

@@ -23,7 +23,7 @@ const NAV = [
 function Wordmark() {
   return (
     <Link href="/dashboard" className="flex items-center gap-2.5">
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-bloom text-white shadow-soft">
+      <span className="grid h-9 w-9 place-items-center rounded-xl bg-bloom text-canvas shadow-soft">
         <IconBouquet width={20} height={20} />
       </span>
       <span className="leading-none">
@@ -115,7 +115,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile bottom tab bar */}
       <nav
         aria-label="Навігація"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-16px_rgba(60,40,34,0.28)] backdrop-blur lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/85 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-16px_rgba(0,0,0,0.6)] backdrop-blur lg:hidden"
       >
         <div className="mx-auto flex max-w-md items-stretch justify-around px-2">
           {NAV.map((item) => {

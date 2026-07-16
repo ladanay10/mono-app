@@ -168,7 +168,7 @@ function PopoverShell({
     return createPortal(
       <div className="fixed inset-0 z-1200 flex flex-col justify-end">
         <div
-          className="animate-fade-in absolute inset-0 bg-ink/45 backdrop-blur-[2px]"
+          className="animate-fade-in absolute inset-0 bg-black/60 backdrop-blur-sm"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -428,7 +428,7 @@ export function DateRangePicker({
                   let cls = "text-ink hover:bg-surface-sunk";
                   if (isEndpoint)
                     cls =
-                      "bg-bloom text-white font-semibold hover:bg-bloom-strong";
+                      "bg-bloom text-canvas font-semibold hover:bg-bloom-strong";
                   else if (inRange) cls = "bg-bloom-tint text-bloom-ink";
                   else if (isToday)
                     cls =
@@ -461,7 +461,7 @@ export function DateRangePicker({
                 </button>
                 <button
                   onClick={apply}
-                  className="flex-1 cursor-pointer rounded-lg bg-bloom px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-bloom-strong"
+                  className="flex-1 cursor-pointer rounded-lg bg-bloom px-3 py-1.5 text-xs font-medium text-canvas transition-colors hover:bg-bloom-strong"
                 >
                   Застосувати
                 </button>
@@ -557,7 +557,7 @@ export function DatePicker({
                 let cls = "text-ink hover:bg-surface-sunk";
                 if (selected)
                   cls =
-                    "bg-bloom text-white font-semibold hover:bg-bloom-strong";
+                    "bg-bloom text-canvas font-semibold hover:bg-bloom-strong";
                 else if (isToday)
                   cls =
                     "font-semibold text-bloom-ink ring-1 ring-inset ring-bloom/30";

@@ -7,19 +7,27 @@ import { formatUahCompact } from '@/lib/money';
 
 /* Brand palette in hex (canvas can't resolve CSS vars). Mirrors globals.css. */
 export const chartPalette = {
-  bloom: '#b0475f',
-  bloomInk: '#8a3247',
-  sage: '#4b7d5b',
-  sageInk: '#3a6549',
-  clay: '#b8452f',
-  gold: '#a9761f',
-  ink: '#241d1a',
-  inkSoft: '#6f635b',
-  inkFaint: '#a3968d',
-  line: '#ece2db',
-  sunk: '#f1e9e3',
-  surface: '#ffffff',
+  bloom: '#ffffff',
+  bloomInk: '#ffffff',
+  sage: '#34d399',
+  sageInk: '#6ee7b7',
+  clay: '#f4716e',
+  gold: '#f5b85a',
+  ink: '#f3f4f6',
+  inkSoft: '#a1a5b0',
+  inkFaint: '#6b7080',
+  line: '#262a33',
+  sunk: '#101217',
+  surface: '#16181f',
 };
+
+/* hex → rgba, for chart gradients that key off a palette colour */
+export function withAlpha(hex: string, a: number): string {
+  const h = hex.replace('#', '');
+  const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+  const n = parseInt(full, 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+}
 
 const FONT = 'Inter, ui-sans-serif, system-ui, sans-serif';
 
@@ -29,7 +37,7 @@ const tooltipBase = {
   borderWidth: 1,
   padding: [8, 12] as [number, number],
   textStyle: { color: chartPalette.ink, fontFamily: FONT, fontSize: 12 },
-  extraCssText: 'border-radius:12px;box-shadow:0 8px 20px -6px rgba(60,40,34,0.18);',
+  extraCssText: 'border-radius:12px;box-shadow:0 12px 32px -8px rgba(0,0,0,0.7);',
 };
 
 /* echarts callback params, read loosely to sidestep union types */
@@ -76,7 +84,7 @@ export function ColumnChart({
       },
       tooltip: {
         trigger: 'axis',
-        axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(176,71,95,0.06)' } },
+        axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(255,255,255,0.05)' } },
         ...tooltipBase,
         formatter: (raw: unknown) => {
           const list = toList(raw);
@@ -203,6 +211,84 @@ export function BarList({
       ],
     }),
     [items, format],
+  );
+
+  return <EChart option={option} height={height} />;
+}
+
+/* ------------------------------------------------------------------ *
+ * Area / line — a smooth trend (e.g. profit margin % over months)
+ * ------------------------------------------------------------------ */
+export type Point = { label: string; value: number };
+
+export function AreaChart({
+  points,
+  format,
+  height = 200,
+  color = chartPalette.sage,
+}: {
+  points: Point[];
+  format: (v: number) => string;
+  height?: number;
+  color?: string;
+}) {
+  const option = useMemo<EChartsCoreOption>(
+    () => ({
+      grid: { left: 6, right: 14, top: 18, bottom: 2, containLabel: true },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'line', lineStyle: { color: chartPalette.line, width: 1 } },
+        ...tooltipBase,
+        formatter: (raw: unknown) => {
+          const p = toList(raw)[0];
+          return `<div style="font-weight:600;margin-bottom:2px">${p?.axisValue ?? ''}</div><div>${format(Number(p?.value ?? 0))}</div>`;
+        },
+      },
+      xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: points.map((p) => p.label),
+        axisTick: { show: false },
+        axisLine: { lineStyle: { color: chartPalette.line } },
+        axisLabel: { color: chartPalette.inkFaint, fontFamily: FONT, fontSize: 11 },
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: {
+          color: chartPalette.inkFaint,
+          fontFamily: FONT,
+          fontSize: 11,
+          formatter: (v: number) => format(v),
+        },
+        splitLine: { lineStyle: { color: chartPalette.line, type: 'dashed' } },
+      },
+      series: [
+        {
+          type: 'line',
+          data: points.map((p) => p.value),
+          smooth: true,
+          symbol: 'circle',
+          symbolSize: 7,
+          showSymbol: points.length <= 12,
+          lineStyle: { width: 3, color, shadowColor: withAlpha(color, 0.5), shadowBlur: 12 },
+          itemStyle: { color, borderColor: chartPalette.surface, borderWidth: 2 },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                { offset: 0, color: withAlpha(color, 0.35) },
+                { offset: 1, color: withAlpha(color, 0.02) },
+              ],
+            },
+          },
+        },
+      ],
+    }),
+    [points, format, color],
   );
 
   return <EChart option={option} height={height} />;

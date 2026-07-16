@@ -7,7 +7,7 @@ type ButtonSize = 'sm' | 'md';
 
 const BTN_VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    'bg-bloom text-white shadow-soft hover:bg-bloom-strong active:translate-y-px disabled:bg-bloom/45',
+    'bg-bloom text-canvas shadow-soft hover:bg-bloom-strong active:translate-y-px disabled:bg-bloom/45',
   secondary:
     'bg-surface text-ink border border-line-strong hover:bg-surface-soft hover:border-ink-faint/60 active:translate-y-px disabled:opacity-50',
   ghost:

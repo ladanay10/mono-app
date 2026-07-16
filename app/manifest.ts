@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Облік доходів і прибутку квіткової студії MONO',
     start_url: '/dashboard',
     display: 'standalone',
-    background_color: '#fffefd',
-    theme_color: '#b0475f',
+    background_color: '#0c0d11',
+    theme_color: '#0c0d11',
     orientation: 'portrait',
     lang: 'uk',
     icons: [

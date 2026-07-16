@@ -1,8 +1,12 @@
-'use client';
+"use client";
 
-import { forwardRef } from 'react';
+import { forwardRef } from "react";
 
-export function Label({ children, className = '', ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {
+export function Label({
+  children,
+  className = "",
+  ...props
+}: React.LabelHTMLAttributes<HTMLLabelElement>) {
   return (
     <label
       {...props}
@@ -16,18 +20,21 @@ export function Label({ children, className = '', ...props }: React.LabelHTMLAtt
 // text-base (16px) on mobile is deliberate: iOS Safari auto-zooms — and yanks the
 // viewport around — whenever a focused control's font-size is under 16px.
 const FIELD_BASE =
-  'w-full rounded-xl border border-line bg-surface px-3.5 text-base sm:text-sm text-ink placeholder:text-ink-faint outline-none transition-colors duration-150 focus:border-bloom disabled:cursor-not-allowed disabled:bg-surface-sunk disabled:text-ink-faint';
+  "w-full rounded-xl border border-line bg-surface px-3.5 text-base sm:text-sm text-ink placeholder:text-ink-faint outline-none transition-colors duration-150 focus:border-line-strong disabled:cursor-not-allowed disabled:bg-surface-sunk disabled:text-ink-faint";
 
-export const Input = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  function Input({ className = '', ...props }, ref) {
-    return <input ref={ref} {...props} className={`${FIELD_BASE} h-10 ${className}`} />;
-  },
-);
+export const Input = forwardRef<
+  HTMLInputElement,
+  React.InputHTMLAttributes<HTMLInputElement>
+>(function Input({ className = "", ...props }, ref) {
+  return (
+    <input ref={ref} {...props} className={`${FIELD_BASE} h-10 ${className}`} />
+  );
+});
 
 /* input with a trailing unit/adornment (e.g. ₴) */
 export function MoneyInput({
-  className = '',
-  suffix = '₴',
+  className = "",
+  suffix = "₴",
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement> & { suffix?: string }) {
   return (
@@ -44,8 +51,16 @@ export function MoneyInput({
   );
 }
 
-export function Textarea({ className = '', ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea {...props} className={`${FIELD_BASE} min-h-20 py-2.5 ${className}`} />;
+export function Textarea({
+  className = "",
+  ...props
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return (
+    <textarea
+      {...props}
+      className={`${FIELD_BASE} min-h-20 py-2.5 ${className}`}
+    />
+  );
 }
 
 /* labelled field wrapper */
@@ -53,7 +68,7 @@ export function Field({
   label,
   hint,
   children,
-  className = '',
+  className = "",
 }: {
   label?: React.ReactNode;
   hint?: React.ReactNode;
