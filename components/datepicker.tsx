@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useIsClient } from '@/lib/hooks/use-is-client';
 import { createPortal } from "react-dom";
 import {
   IconCalendar,
@@ -280,7 +281,7 @@ export function DateRangePicker({
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsClient();
   const [view, setView] = useState(() => {
     const { y, m } = parse(to || from || todayKyiv());
     return { y, m };
@@ -294,16 +295,16 @@ export function DateRangePicker({
   const { triggerRef, popRef, pos } = useAnchoredPopover(open, setOpen, 312);
   const isMobile = useIsMobile();
 
-  useEffect(() => setMounted(true), []);
-  useEffect(() => {
-    if (!open) return;
+  // Reset the picking session on open — done in the handler, not an effect.
+  function openPicker() {
     setStart(from);
     setEnd(to);
     setPhase("start");
     setHover(null);
     const { y, m } = parse(to || from || todayKyiv());
     setView({ y, m });
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+    setOpen(true);
+  }
 
   const cells = useMonthCells(view);
 
@@ -360,7 +361,7 @@ export function DateRangePicker({
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => (open ? setOpen(false) : openPicker())}
         aria-haspopup="dialog"
         aria-expanded={open}
         className={`flex h-10 w-full items-center gap-2 rounded-xl border bg-surface px-3.5 text-left text-sm outline-none transition-[border-color,box-shadow] duration-150 ${
@@ -488,7 +489,7 @@ export function DatePicker({
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsClient();
   const [view, setView] = useState(() => {
     const { y, m } = parse(value || todayKyiv());
     return { y, m };
@@ -497,12 +498,12 @@ export function DatePicker({
   const { triggerRef, popRef, pos } = useAnchoredPopover(open, setOpen, 300);
   const isMobile = useIsMobile();
 
-  useEffect(() => setMounted(true), []);
-  useEffect(() => {
-    if (!open) return;
+  // Snap the calendar to the selected month on open — in the handler, not an effect.
+  function openPicker() {
     const { y, m } = parse(value || todayKyiv());
     setView({ y, m });
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+    setOpen(true);
+  }
 
   const cells = useMonthCells(view);
 
@@ -511,7 +512,7 @@ export function DatePicker({
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => (open ? setOpen(false) : openPicker())}
         aria-haspopup="dialog"
         aria-expanded={open}
         className={`flex h-10 w-full items-center gap-2 rounded-xl border bg-surface px-3.5 text-left text-sm outline-none transition-[border-color,box-shadow] duration-150 ${

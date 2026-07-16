@@ -24,14 +24,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (!getToken()) {
-      setReady(true);
-      return;
-    }
-    api<User>('/auth/me')
-      .then(setUser)
-      .catch(() => clearToken())
-      .finally(() => setReady(true));
+    let active = true;
+    // Always resolve `ready` inside .finally (async), never synchronously here.
+    const load = getToken()
+      ? api<User>('/auth/me')
+          .then((u) => {
+            if (active) setUser(u);
+          })
+          .catch(() => clearToken())
+      : Promise.resolve();
+    load.finally(() => {
+      if (active) setReady(true);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   async function login(email: string, password: string) {

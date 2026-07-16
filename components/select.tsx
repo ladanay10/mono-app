@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useIsClient } from '@/lib/hooks/use-is-client';
 import { createPortal } from 'react-dom';
 import { IconCheck, IconChevronDown, IconSearch } from '@/components/icons';
 import { useIsMobile } from '@/lib/hooks/use-is-mobile';
@@ -46,7 +47,7 @@ export function Select<T extends string>({
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
   const [pos, setPos] = useState<Pos | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsClient();
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -55,7 +56,6 @@ export function Select<T extends string>({
   const listboxId = useId();
   const isMobile = useIsMobile();
 
-  useEffect(() => setMounted(true), []);
 
   const selected = options.find((o) => o.value === value) ?? null;
 
@@ -91,6 +91,21 @@ export function Select<T extends string>({
     });
   }, []);
 
+  // Open/close reset lives in the handlers, not an effect — opening seeds the
+  // active row from the current value and focuses search; closing clears the query.
+  const openList = useCallback(() => {
+    setQuery('');
+    const idx = options.findIndex((o) => o.value === value);
+    setActive(idx >= 0 ? idx : 0);
+    setOpen(true);
+    if (searchable && !isMobile) requestAnimationFrame(() => searchRef.current?.focus());
+  }, [options, value, searchable, isMobile]);
+
+  const closeList = useCallback(() => {
+    setOpen(false);
+    setQuery('');
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     reposition();
@@ -117,24 +132,11 @@ export function Select<T extends string>({
     const onDown = (e: MouseEvent) => {
       const t = e.target as Node;
       if (triggerRef.current?.contains(t) || listRef.current?.contains(t)) return;
-      setOpen(false);
+      closeList();
     };
     document.addEventListener('mousedown', onDown);
     return () => document.removeEventListener('mousedown', onDown);
-  }, [open]);
-
-  // when opening: focus search, set active to selected
-  useEffect(() => {
-    if (!open) {
-      setQuery('');
-      return;
-    }
-    const idx = filtered.findIndex((o) => o.value === value);
-    setActive(idx >= 0 ? idx : 0);
-    // Don't auto-focus the search on mobile: it pops the keyboard the moment the
-    // sheet opens and squeezes the list against it.
-    if (searchable && !isMobile) requestAnimationFrame(() => searchRef.current?.focus());
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, closeList]);
 
   // keep active in view
   useEffect(() => {
@@ -143,23 +145,18 @@ export function Select<T extends string>({
     node?.scrollIntoView({ block: 'nearest' });
   }, [active, open]);
 
-  // clamp active when filter shrinks
-  useEffect(() => {
-    setActive((a) => Math.min(a, Math.max(0, filtered.length - 1)));
-  }, [filtered.length]);
-
   function commit(idx: number) {
     const opt = filtered[idx];
     if (!opt) return;
     onChange(opt.value);
-    setOpen(false);
+    closeList();
     triggerRef.current?.focus();
   }
 
   function onTriggerKey(e: React.KeyboardEvent) {
     if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key) && !open) {
       e.preventDefault();
-      setOpen(true);
+      openList();
       return;
     }
   }
@@ -167,7 +164,7 @@ export function Select<T extends string>({
   function onListKey(e: React.KeyboardEvent) {
     if (e.key === 'Escape') {
       e.preventDefault();
-      setOpen(false);
+      closeList();
       triggerRef.current?.focus();
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -185,7 +182,7 @@ export function Select<T extends string>({
       e.preventDefault();
       commit(active);
     } else if (e.key === 'Tab') {
-      setOpen(false);
+      closeList();
     } else if (!searchable && e.key.length === 1) {
       // type-ahead
       const now = Date.now();
@@ -209,7 +206,10 @@ export function Select<T extends string>({
       <input
         ref={searchRef}
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setActive(0);
+        }}
         onKeyDown={onListKey}
         placeholder="Пошук…"
         // 16px on mobile: anything smaller makes iOS zoom the whole viewport.
@@ -273,7 +273,7 @@ export function Select<T extends string>({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={ariaLabel}
-        onClick={() => !disabled && setOpen((o) => !o)}
+        onClick={() => !disabled && (open ? closeList() : openList())}
         onKeyDown={onTriggerKey}
         className={`flex w-full cursor-pointer items-center gap-2 rounded-xl border bg-surface text-left text-ink outline-none transition-[border-color,box-shadow] duration-150 disabled:cursor-not-allowed disabled:bg-surface-sunk disabled:text-ink-faint ${
           sizes[size]
@@ -304,7 +304,7 @@ export function Select<T extends string>({
           <div className="fixed inset-0 z-1200 flex flex-col justify-end">
             <div
               className="animate-fade-in absolute inset-0 bg-ink/45 backdrop-blur-[2px]"
-              onClick={() => setOpen(false)}
+              onClick={closeList}
               aria-hidden="true"
             />
             <div
@@ -320,7 +320,7 @@ export function Select<T extends string>({
                 <span className="text-sm font-semibold text-ink">{ariaLabel ?? 'Оберіть'}</span>
                 <button
                   type="button"
-                  onClick={() => setOpen(false)}
+                  onClick={closeList}
                   className="cursor-pointer text-sm font-medium text-ink-soft"
                 >
                   Закрити

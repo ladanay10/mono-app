@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { formatUAH } from '@/lib/money';
 import { type CatalogItem } from '@/lib/types';
 import { UNIT_LABEL } from '@/lib/labels';
@@ -27,13 +27,6 @@ export function AddLinesModal({
   const [qty, setQty] = useState<Record<string, number>>({});
   const [query, setQuery] = useState('');
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      setQty({});
-      setQuery('');
-    }
-  }, [open]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useIsClient } from '@/lib/hooks/use-is-client';
 import { createPortal } from 'react-dom';
 import { IconX } from '@/components/icons';
 import { Button } from '@/components/ui';
@@ -25,7 +26,7 @@ export function Modal({
   footer?: React.ReactNode;
   size?: 'sm' | 'md' | 'lg';
 }) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsClient();
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Keep the latest onClose without making it an effect dependency — otherwise
@@ -36,7 +37,6 @@ export function Modal({
     onCloseRef.current = onClose;
   });
 
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) return;

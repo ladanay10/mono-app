@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button, Field, Input } from '@/components/ui';
 import { Modal } from '@/components/modal';
 
@@ -15,11 +15,8 @@ export function SaveTemplateModal({
   defaultName: string;
   onSave: (name: string) => void;
 }) {
-  const [name, setName] = useState('');
-
-  useEffect(() => {
-    if (open) setName(defaultName);
-  }, [open, defaultName]);
+  // Fresh state on each open — the parent remounts this via `key`.
+  const [name, setName] = useState(defaultName);
 
   return (
     <Modal

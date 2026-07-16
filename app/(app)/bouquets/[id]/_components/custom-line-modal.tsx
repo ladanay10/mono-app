@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { uahToKopiyky } from '@/lib/money';
 import { type Unit } from '@/lib/types';
 import { Button, Field, Input, MoneyInput } from '@/components/ui';
@@ -26,15 +26,6 @@ export function CustomLineModal({
   const [purchase, setPurchase] = useState('');
   const [sale, setSale] = useState('');
   const [quantity, setQuantity] = useState('1');
-
-  useEffect(() => {
-    if (open) {
-      setName('');
-      setPurchase('');
-      setSale('');
-      setQuantity('1');
-    }
-  }, [open]);
 
   return (
     <Modal

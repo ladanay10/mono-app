@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { formatUAH, kopiykyToUah, uahToKopiyky } from '@/lib/money';
 import { todayKyiv } from '@/lib/date';
 import { Alert, Button, Field, Input, MoneyInput } from '@/components/ui';
@@ -21,17 +21,10 @@ export function SellModal({
   defaultTitle: string;
   onSell: (soldOn: string, amountReceivedKopiyky: number | undefined, title: string) => void;
 }) {
-  const [soldOn, setSoldOn] = useState(todayKyiv());
-  const [received, setReceived] = useState('');
-  const [title, setTitle] = useState('');
-
-  useEffect(() => {
-    if (open) {
-      setSoldOn(todayKyiv());
-      setReceived(String(kopiykyToUah(revenue)));
-      setTitle(defaultTitle);
-    }
-  }, [open, revenue, defaultTitle]);
+  // Fresh state on each open — the parent remounts this via `key`.
+  const [soldOn, setSoldOn] = useState(() => todayKyiv());
+  const [received, setReceived] = useState(() => String(kopiykyToUah(revenue)));
+  const [title, setTitle] = useState(defaultTitle);
 
   const receivedK = uahToKopiyky(received);
   const owed = revenue - receivedK;

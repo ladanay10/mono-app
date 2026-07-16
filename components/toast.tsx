@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useRef, useState } from 'react';
+import { useIsClient } from '@/lib/hooks/use-is-client';
 import { createPortal } from 'react-dom';
 import { IconAlert, IconCheck, IconX } from '@/components/icons';
 
@@ -19,10 +20,9 @@ let nextId = 1;
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsClient();
   const timers = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
 
-  useEffect(() => setMounted(true), []);
 
   const dismiss = useCallback((id: number) => {
     setToasts((list) => list.filter((t) => t.id !== id));

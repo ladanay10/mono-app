@@ -24,10 +24,17 @@ export function TemplatesModal({
 
   useEffect(() => {
     if (!open) return;
-    setRecipes(null);
+    let active = true;
     api<Recipe[]>('/recipes')
-      .then(setRecipes)
-      .catch(() => setRecipes([]));
+      .then((rows) => {
+        if (active) setRecipes(rows);
+      })
+      .catch(() => {
+        if (active) setRecipes([]);
+      });
+    return () => {
+      active = false;
+    };
   }, [open]);
 
   async function use(r: Recipe) {
